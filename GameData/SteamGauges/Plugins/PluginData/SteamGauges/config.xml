@@ -1,0 +1,184 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<config>
+    <rect name="WindowPosition">
+        <xmin>200</xmin>
+        <xmax>210</xmax>
+        <ymin>200</ymin>
+        <ymax>210</ymax>
+    </rect>
+    <bool name="WindowMinimized">1</bool>
+    <double name="GlobalAlpha">1</double>
+    <bool name="AdvancedMinimized">1</bool>
+    <rect name="AdvancedPosition">
+        <xmin>237</xmin>
+        <xmax>247</xmax>
+        <ymin>10</ymin>
+        <ymax>20</ymax>
+    </rect>
+    <bool name="DrawBezels">0</bool>
+    <bool name="WindowLock">1</bool>
+    <bool name="AllToolbar">1</bool>
+    <bool name="EnableAirGauge">1</bool>
+    <bool name="EnableElecGauge">1</bool>
+    <bool name="EnableFuelGauge">1</bool>
+    <bool name="EnableCompass">0</bool>
+    <bool name="EnableHUD">1</bool>
+    <bool name="EnableNodeGauge">1</bool>
+    <bool name="EnableOrbitGauge">1</bool>
+    <bool name="EnableRadarAltimeter">1</bool>
+    <bool name="EnableRZGauge">1</bool>
+    <bool name="EnableNavGauge">1</bool>
+    <bool name="EnableTempGAuge">1</bool>
+    <rect name="RadarPosition">
+        <xmin>1222</xmin>
+        <xmax>1424.551</xmax>
+        <ymin>500</ymin>
+        <ymax>706.0953</ymax>
+    </rect>
+    <bool name="RadarMinimized">0</bool>
+    <int name="RadarRedLight">10</int>
+    <int name="RadarYellowLight">100</int>
+    <int name="RadarGreenLight">1000</int>
+    <double name="RadarScale">0.506376802921295</double>
+    <int name="RadarCalibration">0</int>
+    <bool name="RadarAutoBurn">0</bool>
+    <bool name="RadarContactStop">0</bool>
+    <int name="RadarContactAlt">2</int>
+    <rect name="CompassPosition">
+        <xmin>0</xmin>
+        <xmax>200</xmax>
+        <ymin>0</ymin>
+        <ymax>203.5</ymax>
+    </rect>
+    <bool name="CompassMinimized">1</bool>
+    <double name="CompassScale">0.5</double>
+    <rect name="ElectricPosition">
+        <xmin>1402</xmin>
+        <xmax>1605.594</xmax>
+        <ymin>197</ymin>
+        <ymax>404.1571</ymax>
+    </rect>
+    <bool name="ElectricMinimized">1</bool>
+    <double name="ElectricScale">0.50898551940918</double>
+    <rect name="FuelPosition">
+        <xmin>1397</xmin>
+        <xmax>1597</xmax>
+        <ymin>395</ymin>
+        <ymax>598.5</ymax>
+    </rect>
+    <bool name="FuelMinimized">1</bool>
+    <double name="FuelRed">0.100000001490116</double>
+    <double name="FuelYellow">0.25</double>
+    <double name="FuelGreen">1</double>
+    <double name="FuelMonoRed">0.100000001490116</double>
+    <double name="FuelMonoYellow">0.25</double>
+    <double name="FuelMonoGreen">1</double>
+    <double name="FuelScale">0.5</double>
+    <rect name="OrbitPosition">
+        <xmin>1404</xmin>
+        <xmax>1604</xmax>
+        <ymin>582</ymin>
+        <ymax>785.5</ymax>
+    </rect>
+    <bool name="OrbitMinimized">0</bool>
+    <bool name="OrbitNegativePe">1</bool>
+    <double name="OrbitGreenAlt">1.2</double>
+    <double name="OrbitCircleThresh">0.1</double>
+    <double name="OribtScale">0.5</double>
+    <int name="OrbitWindow">30</int>
+    <int name="MunSafe">7100</int>
+    <int name="MinmusSafe">5750</int>
+    <int name="MohoSafe">6850</int>
+    <int name="GillySafe">6400</int>
+    <int name="IkeSafe">12750</int>
+    <int name="DresSafe">5700</int>
+    <int name="VallSafe">8000</int>
+    <int name="TyloSafe">11300</int>
+    <int name="BopSafe">21800</int>
+    <int name="PolSafe">5600</int>
+    <int name="EelooSafe">3900</int>
+    <int name="DefaultSafe">7000</int>
+    <rect name="RZPosition">
+        <xmin>100</xmin>
+        <xmax>700</xmax>
+        <ymin>100</ymin>
+        <ymax>303.5</ymax>
+    </rect>
+    <bool name="RZMinimized">1</bool>
+    <int name="RZRedDist">10</int>
+    <int name="RZYellowDist">100</int>
+    <int name="RZGreenDist">1000</int>
+    <double name="RZScale">0.5</double>
+    <rect name="NodePosition">
+        <xmin>139</xmin>
+        <xmax>339</xmax>
+        <ymin>649</ymin>
+        <ymax>852.5</ymax>
+    </rect>
+    <bool name="NodeMinimized">0</bool>
+    <double name="NodeScale">0.5</double>
+    <int name="NodeThrottle">2</int>
+    <bool name="NodeCalculatedBurn">1</bool>
+    <bool name="NodeAutoBurn">0</bool>
+    <bool name="NodeAutoStop">0</bool>
+    <double name="HUDminMach">0.5</double>
+    <double name="HUDminG">2</double>
+    <rect name="HUDPosition">
+        <xmin>374</xmin>
+        <xmax>1222.436</xmax>
+        <ymin>123</ymin>
+        <ymax>759.3269</ymax>
+    </rect>
+    <bool name="HUDMinimized">1</bool>
+    <double name="HUDScale">0.828550696372986</double>
+    <bool name="HUDrotatePitch">1</bool>
+    <bool name="HUDdrawOrbit">1</bool>
+    <bool name="HUDdrawSpdAlt">1</bool>
+    <bool name="HUDdrawTarget">1</bool>
+    <bool name="HUDdrawNode">1</bool>
+    <bool name="HUDdrawThrottle">1</bool>
+    <bool name="HUDdrawIndicators">1</bool>
+    <bool name="HUDdrawWarnings">1</bool>
+    <bool name="HUDuseGPWS">0</bool>
+    <bool name="HUDivaOnly">0</bool>
+    <bool name="HUDmouseInput">0</bool>
+    <bool name="HUDmouseInputOnly">0</bool>
+    <bool name="HUDplaneMode">0</bool>
+    <bool name="HUDorbitalMode">0</bool>
+    <bool name="HUDuseEAS">0</bool>
+    <int name="HUDred">0</int>
+    <int name="HUDgreen">255</int>
+    <int name="HUDblue">0</int>
+    <int name="HUDalpha">255</int>
+    <int name="centerRed">255</int>
+    <int name="centerGreen">0</int>
+    <int name="centerBlue">255</int>
+    <bool name="centerColor">0</bool>
+    <string name="HUDtechnology">Aviation</string>
+    <string name="HUDkey">LeftAlt H </string>
+    <rect name="AirPosition">
+        <xmin>1212</xmin>
+        <xmax>1412</xmax>
+        <ymin>312</ymin>
+        <ymax>515.5</ymax>
+    </rect>
+    <bool name="AirMinimized">0</bool>
+    <double name="AirScale">0.5</double>
+    <double name="AirMinMach">0.400000005960464</double>
+    <bool name="AirUseEAS">1</bool>
+    <rect name="NavPosition">
+        <xmin>-4</xmin>
+        <xmax>237.8551</xmax>
+        <ymin>35</ymin>
+        <ymax>281.0875</ymax>
+    </rect>
+    <bool name="NavMinimized">1</bool>
+    <double name="NavScale">0.604637682437897</double>
+    <rect name="TempPosition">
+        <xmin>1243</xmin>
+        <xmax>1443</xmax>
+        <ymin>698</ymin>
+        <ymax>901.5</ymax>
+    </rect>
+    <bool name="TempMinimized">0</bool>
+</config>
