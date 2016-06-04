@@ -1,0 +1,11 @@
+*.suo
+*~ 
+.*.swp 
+*.user
+bin/
+obj/
+*.pdb
+*.dll
+.vs/
+Thumbs.db
+.DS_Store
