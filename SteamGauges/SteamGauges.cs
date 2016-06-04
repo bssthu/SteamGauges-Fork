@@ -74,6 +74,9 @@ namespace SteamGauges
         private static IButton rz_button;                                           //Rendezvous gauge button
         private static IButton nav_button;                                          //Nav gauge button
         private static IButton temp_button;                                         //Temperature gauge button
+
+        private Callback preDrawCallbacks;
+        private Callback postDrawCallbacks;
         
         //Runs (once?) on object loading
         public void Awake()
@@ -89,7 +92,7 @@ namespace SteamGauges
                 Resources.loadAssets();
 
                 //This needs to get drawn from here on out
-                RenderingManager.AddToPostDrawQueue(3, OnDraw);
+                AddToPostDrawQueue(OnDraw);
 
                 if (debug) Debug.Log("(SG) Loading config values...");
                 PluginConfiguration config = PluginConfiguration.CreateForType<SteamGauges>();
@@ -113,6 +116,8 @@ namespace SteamGauges
                 nodeGauge.Initialize(this, 8909, "node_gauge.png", enableNodeGauge);
                 hudGauge = new HudGauge();
                 hudGauge.Initialize(this, 8910, enableHUDGauge);
+                AddToPreDrawQueue(hudGauge.OnPreDraw);
+                AddToPostDrawQueue(hudGauge.OnDraw);
                 airGauge = new AirGauge();
                 airGauge.Initialize(this, 8911, "air_gauge.png", enableAirGauge);
                 navGauge = new NavGauge();
@@ -452,6 +457,32 @@ namespace SteamGauges
             enableTempGauge = config.GetValue<bool>("EnableTempGauge", true);
         }
 
+        // Replace RenderingManager.AddToPreDrawQueue
+        public void AddToPreDrawQueue(Callback drawFunction)
+        {
+            if (preDrawCallbacks == null)
+            {
+                preDrawCallbacks = drawFunction;
+            }
+            else
+            {
+                preDrawCallbacks += drawFunction;
+            }
+        }
+
+        // Replace RenderingManager.AddToPostDrawQueue
+        public void AddToPostDrawQueue(Callback drawFunction)
+        {
+            if (postDrawCallbacks == null)
+            {
+                postDrawCallbacks = drawFunction;
+            }
+            else
+            {
+                postDrawCallbacks += drawFunction;
+            }
+        }
+
         //Loads each gauge's configuration
         private void LoadThem(PluginConfiguration config)
         {
@@ -787,6 +818,21 @@ namespace SteamGauges
             if (GUI.changed)  SaveMe();
             //Make it dragable
             GUI.DragWindow();
+        }
+
+        private void OnGUI()
+        {
+            if (Event.current.type == EventType.Repaint || Event.current.isMouse)
+            {
+                if (preDrawCallbacks != null)
+                {
+                    preDrawCallbacks();
+                }
+            }
+            if (postDrawCallbacks != null)
+            {
+                postDrawCallbacks();
+            }
         }
 
         //This toggles the visibility of the extra toolbar buttons, based on the user selected mode.

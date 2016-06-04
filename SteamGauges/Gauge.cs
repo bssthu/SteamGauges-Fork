@@ -66,7 +66,7 @@ namespace SteamGauges
                 windowID = id;
                 windowPosition = new Rect(300, 300, base_width, base_height);
                 lastPosition = windowPosition;
-                RenderingManager.AddToPostDrawQueue(3, OnDraw);
+                sg.AddToPostDrawQueue(OnDraw);
             }
             catch
             {

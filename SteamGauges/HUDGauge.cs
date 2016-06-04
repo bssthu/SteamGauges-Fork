@@ -56,8 +56,8 @@ namespace SteamGauges
             windowID = id;
             isEnabled = enable;
             lastPosition = windowPosition;
-            RenderingManager.AddToPreDrawQueue(0, OnPreDraw);
-            RenderingManager.AddToPostDrawQueue(3, OnDraw);
+            sg.AddToPreDrawQueue(OnPreDraw);
+            sg.AddToPostDrawQueue(OnDraw);
         }
 
         //return signed angle in relation to normal's 2d plane
