@@ -8,6 +8,7 @@ using System.Threading;
 using System.Reflection;
 using System.Linq;
 using UnityEngine;
+using ModuleWheels;
 
 namespace SteamGauges
 {
@@ -121,7 +122,7 @@ namespace SteamGauges
                 FinePrint.WaypointManager WM;
                 WM = FinePrint.WaypointManager.Instance();
                 int count = 0;
-                foreach (FinePrint.Waypoint W in WM.AllWaypoints())
+                foreach (FinePrint.Waypoint W in WM.Waypoints)
                 {
                     if (W.celestialName.Equals(FlightGlobals.currentMainBody.name)) count++;
                 }
@@ -311,18 +312,13 @@ namespace SteamGauges
                         _evafuel = eva.Fuel;
                         _evamaxfuel = eva.FuelCapacity;
                     }
-                    else if (pm is ModuleLandingGear)
+                    else if (pm is ModuleWheelDeployment)
                     {
                         _gearstate = 0; //Gear up
-                        ModuleLandingGear mlg = pm as ModuleLandingGear;
-                        if (mlg.gearState.Equals(ModuleLandingGear.GearStates.DEPLOYED)) _gearstate = 3;
-                        if (mlg.gearState.Equals(ModuleLandingGear.GearStates.DEPLOYING)) _gearstate = 2;
-                        if (mlg.gearState.Equals(ModuleLandingGear.GearStates.RETRACTING)) _gearstate = 1;
-                    }
-                    else if (pm is ModuleLandingLeg)
-                    {
-                        ModuleLandingLeg mll = pm as ModuleLandingLeg;
-                        _gearstate = mll.savedLegState;
+                        ModuleWheelDeployment mlg = pm as ModuleWheelDeployment;
+                        if (mlg.stateString.Equals("Deployed")) _gearstate = 3;
+                        if (mlg.stateString.StartsWith("Deploying")) _gearstate = 2;
+                        if (mlg.stateString.StartsWith("Retracting")) _gearstate = 1;
                     }
                     else if (pm is ModuleEngines)
                     {
@@ -480,7 +476,7 @@ namespace SteamGauges
                 _nav_dist = -1;
                 //now try actually calculating things
                 int count = 0;
-                foreach (FinePrint.Waypoint W in WM.AllWaypoints())
+                foreach (FinePrint.Waypoint W in WM.Waypoints)
                 {
                     //we clearly only care about waypoints on this planet
                     if (W.celestialName.Equals(body.name))

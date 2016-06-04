@@ -1,6 +1,8 @@
 ﻿using UnityEngine;
 using KSP;
 using KSP.IO;
+using KSP.UI.Screens.Flight;
+using ModuleWheels;
 using System;
 
 namespace SteamGauges
@@ -915,7 +917,9 @@ namespace SteamGauges
         {
             //I'm pretty sure the navball stuff came from MechJeb too.
             if (ball == null)
+            {
                 ball = FlightUIController.fetch.GetComponentInChildren<NavBall>();
+            }
             Quaternion vesselRot = Quaternion.Inverse(ball.relativeGymbal);
             float pitch = (vesselRot.eulerAngles.x > 180) ? (360 - vesselRot.eulerAngles.x) : -vesselRot.eulerAngles.x; 
             float roll = (vesselRot.eulerAngles.z > 180) ? (360 - vesselRot.eulerAngles.z) : -vesselRot.eulerAngles.z;
@@ -1443,10 +1447,10 @@ namespace SteamGauges
                     {
                         foreach (PartModule pm in P.Modules)
                         {
-                            if (pm.moduleName.Equals("ModuleLandingGear"))
+                            if (pm is ModuleWheelDeployment)
                             {
-                                ModuleLandingGear mlg = (ModuleLandingGear)pm;
-                                if (!mlg.gearState.Equals(ModuleLandingGear.GearStates.DEPLOYED))
+                                ModuleWheelDeployment mlg = (ModuleWheelDeployment)pm;
+                                if (!mlg.stateString.Equals("Deployed"))
                                 {
                                     if (v.srf_velocity.magnitude > 97.7)
                                     {

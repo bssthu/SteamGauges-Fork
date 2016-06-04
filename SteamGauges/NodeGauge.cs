@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using KSP;
 using KSP.IO;
+using KSP.UI.Screens.Flight;
 using System;
 
 namespace SteamGauges

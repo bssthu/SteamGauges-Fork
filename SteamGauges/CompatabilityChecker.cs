@@ -179,7 +179,7 @@ namespace SteamGauges
 
             if ((incompatible.Length > 0) || (incompatibleUnity.Length > 0))
             {
-                PopupDialog.SpawnPopupDialog("Incompatible Mods Detected", message, "OK", true, HighLogic.Skin);
+                PopupDialog.SpawnPopupDialog(new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), "Incompatible Mods Detected", message, "OK", true, HighLogic.UISkin);
             }
         }
 
