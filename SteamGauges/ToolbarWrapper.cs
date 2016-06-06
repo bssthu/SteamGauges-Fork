@@ -728,10 +728,18 @@ namespace Toolbar
 		}
 
 		internal static Type getType(string name) {
-			return AssemblyLoader.loadedAssemblies
-				.SelectMany(a => a.assembly.GetExportedTypes())
-				.SingleOrDefault(t => t.FullName == name);
-		}
+            // https://github.com/MuMech/MechJeb2/commit/b966a87399b7b31ed177465b347d09fe4ae14019
+            foreach (AssemblyLoader.LoadedAssembly assembly in AssemblyLoader.loadedAssemblies) {
+                try {
+                    var type = assembly.assembly.GetExportedTypes().SingleOrDefault(t => t.FullName == name);
+                    if (type != null)
+                        return type;
+                }
+                catch (InvalidOperationException) {
+                }
+            }
+            return null;
+        }
 
 		internal static PropertyInfo getProperty(Type type, string name) {
 			return type.GetProperty(name, BindingFlags.Public | BindingFlags.Instance);
