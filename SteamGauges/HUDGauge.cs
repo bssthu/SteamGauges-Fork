@@ -428,9 +428,12 @@ namespace SteamGauges
                 {
                     //Draw a subset of display elements
                     Vessel v = FlightGlobals.ActiveVessel;
-                    drawPitchLadder(v, false);
-                    drawHeadingTape(v);
-                    drawExtraInfo(v, false);
+                    if (v != null)
+                    {
+                        drawPitchLadder(v, false);
+                        drawHeadingTape(v);
+                        drawExtraInfo(v, false);
+                    }
                 }
             }
             else
@@ -440,12 +443,15 @@ namespace SteamGauges
 
                 //Draw the dynamic elements
                 Vessel v = FlightGlobals.ActiveVessel;
-                drawPitchLadder(v, true);
-                drawHeadingTape(v);
-                drawAirspeedTape(v);
-                drawAltitudeTape(v);
-                drawExtraInfo(v, true);
-                GPWS(v);
+                if (v != null)
+                {
+                    drawPitchLadder(v, true);
+                    drawHeadingTape(v);
+                    drawAirspeedTape(v);
+                    drawAltitudeTape(v);
+                    drawExtraInfo(v, true);
+                    GPWS(v);
+                }
             }
 
             GUI.color = tmpColor;   //reset Alpha blend
@@ -918,7 +924,7 @@ namespace SteamGauges
             //I'm pretty sure the navball stuff came from MechJeb too.
             if (ball == null)
             {
-                ball = FlightUIController.fetch.GetComponentInChildren<NavBall>();
+                ball = UnityEngine.Object.FindObjectOfType<NavBall>();
             }
             Quaternion vesselRot = Quaternion.Inverse(ball.relativeGymbal);
             float pitch = (vesselRot.eulerAngles.x > 180) ? (360 - vesselRot.eulerAngles.x) : -vesselRot.eulerAngles.x; 
