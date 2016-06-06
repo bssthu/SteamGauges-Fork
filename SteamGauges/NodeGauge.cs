@@ -202,7 +202,7 @@ namespace SteamGauges
             //double burnTime = (SteamShip.Mass - mass)/rate;                                 //Mass to burn over rate should give time, but doesn't
             //burnTime += SteamShip.EngineAccel+SteamShip.EngineDecel;                        //Compensate for slow throttles
             double burnTime = SteamShip.BurnTime;
-            NavBallBurnVector bv = FlightUIController.fetch.GetComponentsInChildren<NavBallBurnVector>()[0];
+            NavBallBurnVector bv = UnityEngine.Object.FindObjectsOfType<NavBallBurnVector>()[0];
             double bt2 = bv.estimatedBurnTime;
             if (double.IsInfinity(bt2) || double.IsNaN(bt2)) bt2 = 0; //Assume its good if not infinity or NaN
             //Draw values

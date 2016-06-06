@@ -691,13 +691,13 @@ namespace SteamGauges
 
             //Which velocity vector are we interested in?
             Vector3 speed = Vector3.zero;
-            switch (FlightUIController.speedDisplayMode)
+            switch (FlightGlobals.speedDisplayMode)
             {
-                case FlightUIController.SpeedDisplayModes.Orbit:
+                case FlightGlobals.SpeedDisplayModes.Orbit:
                     speed = FlightGlobals.ship_obtVelocity;
                     break;
 
-                case FlightUIController.SpeedDisplayModes.Target:
+                case FlightGlobals.SpeedDisplayModes.Target:
                     speed = tgt_velocity;
                     break;
 
@@ -730,7 +730,7 @@ namespace SteamGauges
                             myNode = v.patchedConicSolver.maneuverNodes.ToArray()[0];
                             double deltaV = myNode.DeltaV.magnitude;                                       //The burn's ΔV
                             double deltaVRem = myNode.GetBurnVector(FlightGlobals.ActiveVessel.orbit).magnitude;   //Remaining ΔV in the burn
-                            NavBallBurnVector bv = FlightUIController.fetch.GetComponentsInChildren<NavBallBurnVector>()[0];
+                            NavBallBurnVector bv = UnityEngine.Object.FindObjectsOfType<NavBallBurnVector>()[0];
                             //Thanks to a.g. for finding this vector in MechJeb's code
                             Vector3 fwd = v.patchedConicSolver.maneuverNodes[0].GetBurnVector(v.orbit);
                             //Draw the forward (or anti) burn vector
@@ -1486,7 +1486,7 @@ namespace SteamGauges
                 if (!warning && (ra < 1000) && (ra > 5))
                 {
                     if (ball == null)
-                        ball = FlightUIController.fetch.GetComponentInChildren<NavBall>();
+                        ball = UnityEngine.Object.FindObjectOfType<NavBall>();
                     Quaternion vesselRot = Quaternion.Inverse(ball.relativeGymbal);
                     float roll = (vesselRot.eulerAngles.z > 180) ? (360 - vesselRot.eulerAngles.z) : -vesselRot.eulerAngles.z;
                     if ((ra < 10) && (roll > 10))
