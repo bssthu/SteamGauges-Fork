@@ -25,10 +25,10 @@ namespace SteamGauges
     [KSPAddon(KSPAddon.Startup.Flight, false)]      //Don't show anything unless in flight.
     public class SteamGauges : MonoBehaviour
     {
-        //This version of SteamGauges is compatible with KSP 0.90 - for use in CompatabilityChecker
+        //This version of SteamGauges is compatible with KSP 1.1.2 - for use in CompatabilityChecker
         public static int CompatibleMajorVersion { get { return 1; } }
-        public static int CompatibleMinorVersion { get { return 0; } }
-        public static int CompatibleRevisionVersion { get { return 4; } }
+        public static int CompatibleMinorVersion { get { return 1; } }
+        public static int CompatibleRevisionVersion { get { return 2; } }
         public static String VersionString { get { return "1.7.2"; } }
 
         public static bool debug = false;                                            //If this is true, prints debug info to the console
