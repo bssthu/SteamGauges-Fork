@@ -99,41 +99,57 @@ namespace SteamGauges
                 GUI.DrawTextureWithTexCoords(new Rect(167f * Scale, 172f * Scale, 18f * Scale, 17f * Scale), texture, new Rect(0.73875f, 0.4386f, 0.0225f, 0.0209f));
             }
             double maxalt = 0;
-            if (FlightGlobals.currentMainBody.atmosphere)   //There's an atmosphere, so we might be in it
+            CelestialBody currentMainBody = FlightGlobals.currentMainBody;
+            if (currentMainBody != null)
             {
-                maxalt = FlightGlobals.currentMainBody.atmosphereDepth;
-            }
-            else  //There's no atmosphere, but we might still be close to the terrain
-            {
-                //I was hoping to avoid this, but here are the hard coded altitudes
-                int maxLevel = 5000;
-                string name = FlightGlobals.currentMainBody.bodyName;
-                switch (name)
+                if (currentMainBody.atmosphere)   //There's an atmosphere, so we might be in it
                 {
-                    case "Mun": maxLevel = MunSafe;
-                        break;
-                    case "Minmus": maxLevel = MinimusSafe;
-                        break;
-                    case "Moho": maxLevel = MohoSafe;
-                        break;
-                    case "Gilly": maxLevel = GillySafe;
-                        break;
-                    case "Ike": maxLevel = IkeSafe;
-                        break;
-                    case "Dres": maxLevel = DresSafe;
-                        break;
-                    case "Vall": maxLevel = VallSafe;
-                        break;
-                    case "Tylo": maxLevel = VallSafe;
-                        break;
-                    case "Bop": maxLevel = BopSafe;
-                        break;
-                    case "Pol": maxLevel = PolSafe;
-                        break;
-                    case "Eeloo": maxLevel = EelooSafe;
-                        break;
-                    default: maxLevel = DefaultSafe;
-                        break;
+                    maxalt = currentMainBody.atmosphereDepth;
+                }
+                else  //There's no atmosphere, but we might still be close to the terrain
+                {
+                    //I was hoping to avoid this, but here are the hard coded altitudes
+                    int maxLevel = 5000;
+                    string name = currentMainBody.bodyName;
+                    switch (name)
+                    {
+                        case "Mun":
+                            maxLevel = MunSafe;
+                            break;
+                        case "Minmus":
+                            maxLevel = MinimusSafe;
+                            break;
+                        case "Moho":
+                            maxLevel = MohoSafe;
+                            break;
+                        case "Gilly":
+                            maxLevel = GillySafe;
+                            break;
+                        case "Ike":
+                            maxLevel = IkeSafe;
+                            break;
+                        case "Dres":
+                            maxLevel = DresSafe;
+                            break;
+                        case "Vall":
+                            maxLevel = VallSafe;
+                            break;
+                        case "Tylo":
+                            maxLevel = VallSafe;
+                            break;
+                        case "Bop":
+                            maxLevel = BopSafe;
+                            break;
+                        case "Pol":
+                            maxLevel = PolSafe;
+                            break;
+                        case "Eeloo":
+                            maxLevel = EelooSafe;
+                            break;
+                        default:
+                            maxLevel = DefaultSafe;
+                            break;
+                    }
                 }
             }
             //Apoapsis light

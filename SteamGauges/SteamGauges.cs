@@ -375,18 +375,30 @@ namespace SteamGauges
         //Clean up buttons
         private void OnDestroy()
         {
-            steam_button.Destroy();
-            air_button.Destroy();
-            elec_button.Destroy();
-            fuel_button.Destroy();
-            hud_button.Destroy();
-            compass_button.Destroy();
-            node_button.Destroy();
-            orbit_button.Destroy();
-            ra_button.Destroy();
-            rz_button.Destroy();
-            nav_button.Destroy();
-            temp_button.Destroy();
+            if (steam_button != null)
+                steam_button.Destroy();
+            if (air_button != null)
+                air_button.Destroy();
+            if (elec_button != null)
+                elec_button.Destroy();
+            if (fuel_button != null)
+                fuel_button.Destroy();
+            if (hud_button != null)
+                hud_button.Destroy();
+            if (compass_button != null)
+                compass_button.Destroy();
+            if (node_button != null)
+                node_button.Destroy();
+            if (orbit_button != null)
+                orbit_button.Destroy();
+            if (ra_button != null)
+                ra_button.Destroy();
+            if (rz_button != null)
+                rz_button.Destroy();
+            if (nav_button != null)
+                nav_button.Destroy();
+            if (temp_button != null)
+                temp_button.Destroy();
         }
 
         //Save persistant data to the config file
