@@ -114,7 +114,7 @@ namespace SteamGauges
         public static double EASCoef { get { return _eas; } }
         public static double NavDist { get { return _nav_dist; } }
         public static double NavHeading { get { return _nav_heading; } }
-        public static int NavWaypoint   //allows remote increment and decrement, but constrains to number of waypoints
+        public static int NavWaypointId   //allows remote increment and decrement, but constrains to number of waypoints
         {
             set
             {
@@ -452,17 +452,16 @@ namespace SteamGauges
          //Debug.Log("IAS: " + FlightGlobals.ActiveVessel.indicatedAirSpeed + " M: " + FlightGlobals.ActiveVessel.mach);  //good
             //Waypoint distance code
             //Uses the Spherical Law of Cosines from http://www.movable-type.co.uk/scripts/latlong.html
-            NavWaypoint nW;
+            NavWaypoint nW = NavWaypoint.fetch; //The active nav waypoint
             FinePrint.WaypointManager WM;
             WM = FinePrint.WaypointManager.Instance();
-            if (FinePrint.WaypointManager.navIsActive())
+            if (nW != null && nW.IsActive)
             {
-                nW = FinePrint.WaypointManager.navWaypoint; //The active nav waypoint
                 //Convert these all to radians to do actual math on them.   
                 double Aa = ship.latitude * Math.PI / 180;
                 double Ao = ship.longitude * Math.PI / 180;
-                double Ba = nW.latitude * Math.PI / 180;
-                double Bo = nW.longitude * Math.PI / 180;
+                double Ba = nW.Latitude * Math.PI / 180;
+                double Bo = nW.Longitude * Math.PI / 180;
                 _nav_dist = Math.Acos(Math.Sin(Aa) * Math.Sin(Ba) + Math.Cos(Aa) * Math.Cos(Ba) * Math.Cos(Bo - Ao)) * FlightGlobals.currentMainBody.Radius;  //used to be 600000
                 double y = Math.Sin(Bo - Ao) * Math.Cos(Ba);
                 double x = Math.Cos(Aa) * Math.Sin(Ba) - Math.Sin(Aa) * Math.Cos(Ba) * Math.Cos(Bo - Ao);

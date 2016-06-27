@@ -24,7 +24,7 @@ namespace SteamGauges
             //handle mouse input
             if (Event.current.type == EventType.mouseUp && nav_select.Contains(Event.current.mousePosition))
             {
-                SteamShip.NavWaypoint = SteamShip.NavWaypoint + 1;
+                SteamShip.NavWaypointId = SteamShip.NavWaypointId + 1;
             }
             if (Event.current.type == EventType.repaint)
             {
