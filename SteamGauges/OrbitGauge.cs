@@ -302,6 +302,11 @@ namespace SteamGauges
         //Draws a formatted 5 digit number with an 'm', 'K', or 'M' postfix, or 4 digit negative number
         private void drawDigits(float right, float top, double value)
         {
+            if (double.IsNaN(value))
+            {
+                return;
+            }
+
             float char_width = Resources.orbit_chars.width;
             float char_height = Resources.orbit_chars.height / 3f;
             float output = 0;
