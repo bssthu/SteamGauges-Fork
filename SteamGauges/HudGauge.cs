@@ -925,6 +925,11 @@ namespace SteamGauges
             if (ball == null)
             {
                 ball = UnityEngine.Object.FindObjectOfType<NavBall>();
+                if (ball == null)
+                {
+                    // still null, give up
+                    return;
+                }
             }
             Quaternion vesselRot = Quaternion.Inverse(ball.relativeGymbal);
             float pitch = (vesselRot.eulerAngles.x > 180) ? (360 - vesselRot.eulerAngles.x) : -vesselRot.eulerAngles.x; 
@@ -1486,7 +1491,14 @@ namespace SteamGauges
                 if (!warning && (ra < 1000) && (ra > 5))
                 {
                     if (ball == null)
+                    {
                         ball = UnityEngine.Object.FindObjectOfType<NavBall>();
+                        if (ball == null)
+                        {
+                            // still null, give up
+                            return;
+                        }
+                    }
                     Quaternion vesselRot = Quaternion.Inverse(ball.relativeGymbal);
                     float roll = (vesselRot.eulerAngles.z > 180) ? (360 - vesselRot.eulerAngles.z) : -vesselRot.eulerAngles.z;
                     if ((ra < 10) && (roll > 10))
