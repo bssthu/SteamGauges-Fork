@@ -17,7 +17,6 @@
 using UnityEngine;                  //KSP is built on the Unity engine, so, we use that a lot
 using KSP.IO;                       //KSP specific IO handling
 using System;
-using Toolbar;                      //Blizzy's toolbar plugin
 
 
 namespace SteamGauges
