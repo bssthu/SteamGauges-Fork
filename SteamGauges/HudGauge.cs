@@ -249,7 +249,7 @@ namespace SteamGauges
                 float scale = TimeWarp.fixedDeltaTime * 20f;
                 Quaternion rot = Quaternion.Euler(new Vector3(pitch, roll, yaw) * -scale);
 
-                mouseSAS.LockHeading(mouseSAS.lockedHeading * rot, true);
+                mouseSAS.LockRotation(mouseSAS.lockedRotation * rot);
             }
             else
                 ApplyInput(ref state.pitch, ref state.roll, ref state.yaw, delta.x, delta.y);
@@ -844,7 +844,7 @@ namespace SteamGauges
                 return;
 
             var vrot = vessel.ReferenceTransform.rotation;
-            var euler = (Quaternion.Inverse(vrot) * SAS.lockedHeading).eulerAngles;
+            var euler = (Quaternion.Inverse(vrot) * SAS.lockedRotation).eulerAngles;
             var turn = new Vector3(-euler.z, -euler.x, -euler.y);
 
             // The code expects the mark to be symmetric, so a negative bias has to be used
@@ -1075,7 +1075,7 @@ namespace SteamGauges
         {
             //Taken from MechJeb via KSP forums
             Vector3d CoM, up;
-            CoM = vessel.findWorldCenterOfMass();
+            CoM = vessel.CoMD;
             up = (CoM - vessel.mainBody.position).normalized;
             //Vector3d north = Vector3.Exclude(up, (vessel.mainBody.position + vessel.mainBody.transform.up * (float)vessel.mainBody.Radius) - CoM).normalized; //obsolete
             Vector3d north = Vector3.ProjectOnPlane(up, (vessel.mainBody.position + vessel.mainBody.transform.up * (float)vessel.mainBody.Radius) - CoM).normalized;

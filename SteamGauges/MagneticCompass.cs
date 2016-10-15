@@ -33,8 +33,8 @@ namespace SteamGauges
             Vector3d CoM, MoI, up;
             Quaternion rotationSurface, rotationVesselSurface;
             Vessel vessel = FlightGlobals.ActiveVessel;
-            CoM = vessel.findWorldCenterOfMass();
-            MoI = vessel.findLocalMOI(CoM);
+            CoM = vessel.CoMD;
+            MoI = vessel.MOI;
             up = (CoM - vessel.mainBody.position).normalized;
             //Vector3d north = Vector3.Exclude(up, (vessel.mainBody.position + vessel.mainBody.transform.up * (float)vessel.mainBody.Radius) - CoM).normalized; //obsolete
             Vector3d north = Vector3.ProjectOnPlane(up, (vessel.mainBody.position + vessel.mainBody.transform.up * (float)vessel.mainBody.Radius) - CoM).normalized;
