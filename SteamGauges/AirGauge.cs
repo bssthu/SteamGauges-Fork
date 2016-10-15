@@ -15,6 +15,9 @@ namespace SteamGauges
         public bool useEAS;
         private bool _first;
 
+        public override string getTextureName() { return "air"; }
+        public override string getTooltipName() { return "Air Gauge"; }
+
         //Constructor for button-specific initialization
         //Especially button construction
         public AirGauge()

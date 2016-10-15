@@ -7,6 +7,9 @@ namespace SteamGauges
     {
         private Rect nav_select;
 
+        public override string getTextureName() { return "nav"; }
+        public override string getTooltipName() { return "Nav Gauge"; }
+
         //Draw unless minimized
         protected override bool isVisible()
         {

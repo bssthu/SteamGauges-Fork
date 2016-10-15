@@ -7,6 +7,9 @@ namespace SteamGauges
 {
     class TempGauge : Gauge
     {
+        public override string getTextureName() { return "temp"; }
+        public override string getTooltipName() { return "Temp Gauge"; }
+
         //Draw if not minimized
         protected override bool isVisible()
         {

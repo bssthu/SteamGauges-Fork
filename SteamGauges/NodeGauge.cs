@@ -20,6 +20,9 @@ namespace SteamGauges
         private Rect burn_toggle;
         private Rect shutdown_toggle;
 
+        public override string getTextureName() { return "node"; }
+        public override string getTooltipName() { return "Node Gauge"; }
+
         public bool getUseCalcBurn()
         {
             return useCalculatedBurn;

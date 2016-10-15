@@ -18,6 +18,9 @@ namespace SteamGauges
         private long ra;                                               //Might as well just store this instead of passing it everywhere
         private bool first;
 
+        public override string getTextureName() { return "ra"; }
+        public override string getTooltipName() { return "Radar Altimeter"; }
+
         public int getRedLight()
         {
             return redLight;

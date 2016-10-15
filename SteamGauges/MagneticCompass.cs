@@ -5,6 +5,9 @@ namespace SteamGauges
 {
     class MagneticCompass : Gauge
     {
+        public override string getTextureName() { return "compass"; }
+        public override string getTooltipName() { return "Compass"; }
+
         //Draw unless minimized
         protected override bool isVisible()
         {

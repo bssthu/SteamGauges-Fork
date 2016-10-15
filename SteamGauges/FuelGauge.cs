@@ -15,6 +15,9 @@ namespace SteamGauges
         private float mono_green_cutoff = 1;                   //Below this percent, the mono gauge will light up green
         private bool stageFuel = false;                        //If true, display only active stage fuel
 
+        public override string getTextureName() { return "fuel"; }
+        public override string getTooltipName() { return "Fuel Gauge"; }
+
         public bool getStagetFuel()
         {
             return stageFuel;

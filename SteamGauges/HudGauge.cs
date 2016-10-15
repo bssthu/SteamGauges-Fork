@@ -44,6 +44,9 @@ namespace SteamGauges
         
         private NavBall ball;
 
+        public override string getTextureName() { return "hud"; }
+        public override string getTooltipName() { return "HUD"; }
+
         //This isn't ever called becuase I'm hiding the onDraw method, but it needs to be in the class none the less.
         protected override void GaugeActions()
         {

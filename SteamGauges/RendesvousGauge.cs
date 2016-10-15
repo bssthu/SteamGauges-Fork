@@ -13,6 +13,9 @@ namespace SteamGauges
         private int closestYellow = 100;                                        //Default distance at which the yellow light comes on
         private int closestRed = 10;                                            //Default distance at which the red light comes on
        // private static float Scale = 1;                                       //Scale of how large the gauge is
+       
+        public override string getTextureName() { return "rz"; }
+        public override string getTooltipName() { return "Rendezvous Gauge"; }
 
         public RendezvousGauge()
         {

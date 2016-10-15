@@ -25,6 +25,9 @@ namespace SteamGauges
         private int DefaultSafe = 0;                                     //The default safe altitude, in case they add a new, airless world
         private string next = "";
 
+        public override string getTextureName() { return "orbit"; }
+        public override string getTooltipName() { return "Orbital Gauge"; }
+
         public double getGreenAlt()
         {
             return greenAlt;

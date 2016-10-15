@@ -31,6 +31,11 @@ namespace SteamGauges
         protected bool useDrawButtons = true;                                  //Set to false to override built-in button drawing
         protected Texture2D texture;                                    //The main texture atlas for this gauge
 
+        public abstract string getTextureName();
+        public abstract string getTooltipName();
+        //public virtual String getTextureName() { return ""; }
+        //public virtual String getTooltipName() { return "base_gauge"; }
+
         private static Dictionary<String, Texture2D> texture_cache = new Dictionary<String, Texture2D>();
 
         public float getScale()

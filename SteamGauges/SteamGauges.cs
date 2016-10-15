@@ -61,18 +61,7 @@ namespace SteamGauges
         public static SteamShip vShip;
 
         //Blizzy's toolbar buttons
-        private static IButton steam_button;                                        //My button that goes into Blizzy's toolbar.
-        private static IButton air_button;                                          //Air gauge button
-        private static IButton elec_button;                                         //Electrical gauge button
-        private static IButton fuel_button;                                         //Fuel gauge button
-        private static IButton hud_button;                                          //HUD button
-        private static IButton compass_button;                                      //Magnetic compass button
-        private static IButton node_button;                                         //Node gauge button
-        private static IButton orbit_button;                                        //Orbital guage button
-        private static IButton ra_button;                                           //Radar altimeter button
-        private static IButton rz_button;                                           //Rendezvous gauge button
-        private static IButton nav_button;                                          //Nav gauge button
-        private static IButton temp_button;                                         //Temperature gauge button
+        private static IButton[] buttons = new IButton[12];
 
         private Callback preDrawCallbacks;
         private Callback postDrawCallbacks;
@@ -128,7 +117,13 @@ namespace SteamGauges
             }
             if (debug) Debug.Log("(SG) Initializing SteamGauges/Toolbar Integration");
             //Blizzy's toolbar buton setup
-            steam_button = ToolbarManager.Instance.add("SteamGauges", "steamgauges1");
+            InitializeButtons();
+            if (debug) Debug.Log("(SG) SteamGauges initialization comlete.");
+        }
+
+        private void InitializeButtons()
+        {
+            IButton steam_button = ToolbarManager.Instance.add("SteamGauges", "steamgauges0");
             steam_button.TexturePath = "SteamGauges/sgi";
             steam_button.ToolTip = "SteamGauges Menu";
             steam_button.Visibility = new GameScenesVisibility(GameScenes.FLIGHT);
@@ -146,258 +141,55 @@ namespace SteamGauges
                 }
                 SaveMe();
             };
-            if (enableAirGauge)
-            {
-                air_button = ToolbarManager.Instance.add("SteamGauges", "steamgauges2");
-                air_button.TexturePath = "SteamGauges/air";
-                if (airGauge.isMinimized)
-                    air_button.ToolTip = "Air Gauge On";
-                else
-                    air_button.ToolTip = "Air Gauge Off";
-                air_button.Visible = _allToolbar;
-                air_button.Visibility = new GameScenesVisibility(GameScenes.FLIGHT);
-                air_button.OnClick += (e) =>
-                {
-                    if (airGauge.isMinimized)
-                        air_button.ToolTip = "Air Gauge On";
-                    else
-                        air_button.ToolTip = "Air Gauge Off";
-                    airGauge.toggle();
-                    SaveMe();
-                };
-            }
-            if (enableElectricalGauge)
-            {
-                elec_button = ToolbarManager.Instance.add("SteamGauges", "steamgauges3");
-                elec_button.TexturePath = "SteamGauges/elec";
-                if (electricalGauge.isMinimized)
-                    elec_button.ToolTip = "Electrical Gauge On";
-                else
-                    elec_button.ToolTip = "Electrical Gauge Off";
-                elec_button.Visible = _allToolbar;
-                elec_button.Visibility = new GameScenesVisibility(GameScenes.FLIGHT);
+            buttons[0] = steam_button;
+            AddButton(airGauge, enableAirGauge, 1);
+            AddButton(electricalGauge, enableElectricalGauge, 2);
+            AddButton(fuelGauge, enableFuelGauge, 3);
+            AddButton(hudGauge, enableHUDGauge, 4);
+            AddButton(compassGauge, enableCompass, 5);
+            AddButton(nodeGauge, enableNodeGauge, 6);
+            AddButton(orbitGauge, enableOrbitGauge, 7);
+            AddButton(radarAltimeter, enableRadarAltimeter, 8);
+            AddButton(rzGauge, enableRZGauge, 9);
+            AddButton(navGauge, enableNavGauge, 10);
+            AddButton(tempGauge, enableTempGauge, 11);
+        }
 
-                elec_button.OnClick += (e) =>
-                {
-                    if (electricalGauge.isMinimized)
-                        elec_button.ToolTip = "Electrical Gauge On";
-                    else
-                        elec_button.ToolTip = "Electrical Gauge Off";
-                    electricalGauge.toggle();
-                    SaveMe();
-                };
-            }
-            if (enableFuelGauge)
+        private void AddButton(Gauge gauge, bool enable, int index)
+        {
+            if (enable)
             {
-                fuel_button = ToolbarManager.Instance.add("SteamGauges", "steamgauges4");
-                fuel_button.TexturePath = "SteamGauges/fuel";
-                if (fuelGauge.isMinimized)
-                    fuel_button.ToolTip = "Fuel Gauge On";
+                IButton btn = ToolbarManager.Instance.add("SteamGauges", String.Format("steamgauges{0}", index));
+                btn.TexturePath = String.Format("SteamGauges/{0}", gauge.getTextureName());
+                if (gauge.isMinimized)
+                    btn.ToolTip = String.Format("{0} On", gauge.getTooltipName());
                 else
-                    fuel_button.ToolTip = "Fuel Gauge Off";
-                fuel_button.Visible = _allToolbar;
-                fuel_button.Visibility = new GameScenesVisibility(GameScenes.FLIGHT);
-                fuel_button.OnClick += (e) =>
+                    btn.ToolTip = String.Format("{0} Off", gauge.getTooltipName());
+                btn.Visible = _allToolbar;
+                btn.Visibility = new GameScenesVisibility(GameScenes.FLIGHT);
+                btn.OnClick += (e) =>
                 {
-                    if (fuelGauge.isMinimized)
-                        fuel_button.ToolTip = "Fuel Gauge On";
+                    if (gauge.isMinimized)
+                        btn.ToolTip = String.Format("{0} On", gauge.getTooltipName());
                     else
-                        fuel_button.ToolTip = "Fuel Gauge Off";
-                    fuelGauge.toggle();
+                        btn.ToolTip = String.Format("{0} Off", gauge.getTooltipName());
+                    gauge.toggle();
                     SaveMe();
                 };
+                buttons[index] = btn;
             }
-            if (enableHUDGauge)
-            {
-                hud_button = ToolbarManager.Instance.add("SteamGauges", "steamgauges5");
-                hud_button.TexturePath = "SteamGauges/hud";
-                if (hudGauge.isMinimized)
-                    hud_button.ToolTip = "HUD On";
-                else
-                    hud_button.ToolTip = "HUD Off";
-                hud_button.Visible = _allToolbar;
-                hud_button.Visibility = new GameScenesVisibility(GameScenes.FLIGHT);
-                hud_button.OnClick += (e) =>
-                {
-                    hudGauge.toggle();
-                    if (hudGauge.isMinimized)
-                        hud_button.ToolTip = "HUD On";
-                    else
-                        hud_button.ToolTip = "HUD Off";
-                    if (debug) Debug.Log("(SG) HUD toggled.");
-                    SaveMe();
-                };
-            }
-            if (enableCompass)
-            {
-                compass_button = ToolbarManager.Instance.add("SteamGauges", "steamgauges6");
-                compass_button.TexturePath = "SteamGauges/compass";
-                if (compassGauge.isMinimized)
-                    compass_button.ToolTip = "Compass On";
-                else
-                    compass_button.ToolTip = "Compass Off";
-                compass_button.Visible = _allToolbar;
-                compass_button.Visibility = new GameScenesVisibility(GameScenes.FLIGHT);
-                compass_button.OnClick += (e) =>
-                {
-                    if (compassGauge.isMinimized)
-                        compass_button.ToolTip = "Compass On";
-                    else
-                        compass_button.ToolTip = "Compass Off";
-                    compassGauge.toggle();
-                    SaveMe();
-                };
-            }
-            if (enableNodeGauge)
-            {
-                node_button = ToolbarManager.Instance.add("SteamGauges", "steamgauges7");
-                node_button.TexturePath = "SteamGauges/node";
-                if (nodeGauge.isMinimized)
-                    node_button.ToolTip = "Node Gauge On";
-                else
-                    node_button.ToolTip = "Node Gauge Off";
-                node_button.Visible = _allToolbar;
-                node_button.Visibility = new GameScenesVisibility(GameScenes.FLIGHT);
-                node_button.OnClick += (e) =>
-                {
-                    if (nodeGauge.isMinimized)
-                        node_button.ToolTip = "Node Gauge On";
-                    else
-                        node_button.ToolTip = "Node Gauge Off";
-                    nodeGauge.toggle();
-                    SaveMe();
-                };
-            }
-            if (enableOrbitGauge)
-            {
-                orbit_button = ToolbarManager.Instance.add("SteamGauges", "steamgauges8");
-                orbit_button.TexturePath = "SteamGauges/orbit";
-                if (orbitGauge.isMinimized)
-                    orbit_button.ToolTip = "Orbital Gauge On";
-                else
-                    orbit_button.ToolTip = "Orbital Gauge Off";
-                orbit_button.Visible = _allToolbar;
-                orbit_button.Visibility = new GameScenesVisibility(GameScenes.FLIGHT);
-                orbit_button.OnClick += (e) =>
-                {
-                    if (orbitGauge.isMinimized)
-                        orbit_button.ToolTip = "Orbital Gauge On";
-                    else
-                        orbit_button.ToolTip = "Orbital Gauge Off";
-                    orbitGauge.toggle();
-                    SaveMe();
-                };
-            }
-            if (enableRadarAltimeter)
-            {
-                ra_button = ToolbarManager.Instance.add("SteamGauges", "steamgauges9");
-                ra_button.TexturePath = "SteamGauges/ra";
-                if (radarAltimeter.isMinimized)
-                    ra_button.ToolTip = "Radar Altimeter On";
-                else
-                    ra_button.ToolTip = "Radar Altimeter Off";
-                ra_button.Visible = _allToolbar;
-                ra_button.Visibility = new GameScenesVisibility(GameScenes.FLIGHT);
-                ra_button.OnClick += (e) =>
-                {
-                    if (radarAltimeter.isMinimized)
-                        ra_button.ToolTip = "Radar Altimeter On";
-                    else
-                        ra_button.ToolTip = "Radar Altimeter Off";
-                    radarAltimeter.toggle();
-                    SaveMe();
-                };
-            }
-            if (enableRZGauge)
-            {
-                rz_button = ToolbarManager.Instance.add("SteamGauges", "steamgauges10");
-                rz_button.TexturePath = "SteamGauges/rz";
-                if (rzGauge.isMinimized)
-                    rz_button.ToolTip = "Rendezvous Gauge On";
-                else
-                    rz_button.ToolTip = "Rendezvous Gauge Off";
-                rz_button.Visible = _allToolbar;
-                rz_button.Visibility = new GameScenesVisibility(GameScenes.FLIGHT);
-                rz_button.OnClick += (e) =>
-                {
-                    if (rzGauge.isMinimized)
-                        rz_button.ToolTip = "Rendezvous Gauge On";
-                    else
-                        rz_button.ToolTip = "Rendezvous Gauge Off";
-                    rzGauge.toggle();
-                    SaveMe();
-                };
-            }
-            if (enableNavGauge)
-            {
-                nav_button = ToolbarManager.Instance.add("SteamGauges", "steamgauges11");
-                nav_button.TexturePath = "SteamGauges/nav";
-                if (navGauge.isMinimized)
-                    nav_button.ToolTip = "Nav Gauge On";
-                else
-                    nav_button.ToolTip = "Nav Gauge Off";
-                nav_button.Visible = _allToolbar;
-                nav_button.Visibility = new GameScenesVisibility(GameScenes.FLIGHT);
-                nav_button.OnClick += (e) =>
-                {
-                    if (navGauge.isMinimized)
-                        nav_button.ToolTip = "Nav Gauge On";
-                    else
-                        nav_button.ToolTip = "Nav Gauge Off";
-                    navGauge.toggle();
-                    SaveMe();
-                };
-            }
-            if (enableTempGauge)
-            {
-                temp_button = ToolbarManager.Instance.add("SteamGauges", "steamgauges12");
-                temp_button.TexturePath = "SteamGauges/temp";
-                if (tempGauge.isMinimized)
-                    temp_button.ToolTip = "Temp Gauge On";
-                else
-                    temp_button.ToolTip = "Temp Gauge Off";
-                temp_button.Visible = _allToolbar;
-                temp_button.Visibility = new GameScenesVisibility(GameScenes.FLIGHT);
-                temp_button.OnClick += (e) =>
-                {
-                    if (tempGauge.isMinimized)
-                        temp_button.ToolTip = "Temp Gauge On";
-                    else
-                        temp_button.ToolTip = "Temp Gauge Off";
-                    tempGauge.toggle();
-                    SaveMe();
-                };
-            }
-            if (debug) Debug.Log("(SG) SteamGauges initialization comlete.");
         }
 
         //Clean up buttons
         private void OnDestroy()
         {
-            if (steam_button != null)
-                steam_button.Destroy();
-            if (air_button != null)
-                air_button.Destroy();
-            if (elec_button != null)
-                elec_button.Destroy();
-            if (fuel_button != null)
-                fuel_button.Destroy();
-            if (hud_button != null)
-                hud_button.Destroy();
-            if (compass_button != null)
-                compass_button.Destroy();
-            if (node_button != null)
-                node_button.Destroy();
-            if (orbit_button != null)
-                orbit_button.Destroy();
-            if (ra_button != null)
-                ra_button.Destroy();
-            if (rz_button != null)
-                rz_button.Destroy();
-            if (nav_button != null)
-                nav_button.Destroy();
-            if (temp_button != null)
-                temp_button.Destroy();
+            foreach (IButton btn in buttons)
+            {
+                if (btn != null)
+                {
+                    btn.Destroy();
+                }
+            }
         }
 
         //Save persistant data to the config file
@@ -852,17 +644,14 @@ namespace SteamGauges
             _allToolbar = !_allToolbar;
             if (_allToolbar)
                 isMinimized = true;
-            air_button.Visible = _allToolbar;
-            elec_button.Visible = _allToolbar;
-            fuel_button.Visible = _allToolbar;
-            hud_button.Visible = _allToolbar;
-            compass_button.Visible = _allToolbar;
-            node_button.Visible = _allToolbar;
-            orbit_button.Visible = _allToolbar;
-            ra_button.Visible = _allToolbar;
-            rz_button.Visible = _allToolbar;
-            nav_button.Visible = _allToolbar;
-            temp_button.Visible = _allToolbar;
+            for (int i = 1; i < buttons.Length; i++)    // skip first button
+            {
+                IButton btn = buttons[i];
+                if (btn != null)
+                {
+                    btn.Visible = _allToolbar;
+                }
+            }
         }
 
         private bool WindowToggle(bool cur_state, System.String name, int width)

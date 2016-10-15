@@ -7,6 +7,9 @@ namespace SteamGauges
 {
     class ElectricalGauge : Gauge
     {
+        public override string getTextureName() { return "elec"; }
+        public override string getTooltipName() { return "Electrical Gauge"; }
+
         //Draw if not minimized
         protected override bool isVisible()
         {
