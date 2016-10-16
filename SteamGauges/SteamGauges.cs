@@ -16,6 +16,7 @@
 
 using UnityEngine;                  //KSP is built on the Unity engine, so, we use that a lot
 using KSP.IO;                       //KSP specific IO handling
+using KSP.UI.Screens;
 using System;
 
 
@@ -62,6 +63,7 @@ namespace SteamGauges
 
         //Blizzy's toolbar buttons
         private static IButton[] buttons = new IButton[12];
+        private static ApplicationLauncherButton[] appButtons = new ApplicationLauncherButton[12];
 
         private Callback preDrawCallbacks;
         private Callback postDrawCallbacks;
@@ -115,19 +117,22 @@ namespace SteamGauges
                 if (debug) Debug.Log("(SG) Loading gauge settings...");
                 LoadThem(config);
             }
-            if (debug) Debug.Log("(SG) Initializing SteamGauges/Toolbar Integration");
             //Blizzy's toolbar buton setup
-            InitializeButtons();
+            if (ToolbarManager.ToolbarAvailable)
+            {
+                InitializeButtons();
+            }
+            else
+            {
+                GameEvents.onGUIApplicationLauncherReady.Add(InitializeButtons);
+            }
             if (debug) Debug.Log("(SG) SteamGauges initialization comlete.");
         }
 
         private void InitializeButtons()
         {
-            IButton steam_button = ToolbarManager.Instance.add("SteamGauges", "steamgauges0");
-            steam_button.TexturePath = "SteamGauges/sgi";
-            steam_button.ToolTip = "SteamGauges Menu";
-            steam_button.Visibility = new GameScenesVisibility(GameScenes.FLIGHT);
-            steam_button.OnClick += (e) =>
+            if (debug) Debug.Log("(SG) Initializing SteamGauges/Toolbar Integration");
+            Callback onClickSteamButton = () =>
             {
                 if (_allToolbar)
                 {
@@ -141,7 +146,33 @@ namespace SteamGauges
                 }
                 SaveMe();
             };
-            buttons[0] = steam_button;
+
+            if (ToolbarManager.ToolbarAvailable)
+            {
+                IButton steam_button = ToolbarManager.Instance.add("SteamGauges", "steamgauges0");
+                steam_button.TexturePath = "SteamGauges/sgi";
+                steam_button.ToolTip = "SteamGauges Menu";
+                steam_button.Visibility = new GameScenesVisibility(GameScenes.FLIGHT);
+                steam_button.OnClick += (e) =>
+                {
+                    onClickSteamButton();
+                };
+                buttons[0] = steam_button;
+            }
+            else if (ApplicationLauncher.Ready)
+            {
+                ApplicationLauncherButton steam_button = ApplicationLauncher.Instance.AddModApplication(
+                        onClickSteamButton,
+                        onClickSteamButton,
+                        () => { },
+                        () => { },
+                        () => { },
+                        () => { },
+                        ApplicationLauncher.AppScenes.FLIGHT,
+                        (Texture)GameDatabase.Instance.GetTexture("SteamGauges/sgi", false));
+                appButtons[0] = steam_button;
+            }
+
             AddButton(airGauge, enableAirGauge, 1);
             AddButton(electricalGauge, enableElectricalGauge, 2);
             AddButton(fuelGauge, enableFuelGauge, 3);
@@ -156,6 +187,18 @@ namespace SteamGauges
         }
 
         private void AddButton(Gauge gauge, bool enable, int index)
+        {
+            if (ToolbarManager.ToolbarAvailable)
+            {
+                AddToolbarButton(gauge, enable, index);
+            }
+            else if (ApplicationLauncher.Ready)
+            {
+                AddAppLaunchButton(gauge, enable, index);
+            }
+        }
+
+        private void AddToolbarButton(Gauge gauge, bool enable, int index)
         {
             if (enable)
             {
@@ -180,6 +223,28 @@ namespace SteamGauges
             }
         }
 
+        private void AddAppLaunchButton(Gauge gauge, bool enable, int index)
+        {
+            if (enable)
+            {
+                Callback onClick = () =>
+                {
+                    gauge.toggle();
+                    SaveMe();
+                };
+                ApplicationLauncherButton button = ApplicationLauncher.Instance.AddModApplication(
+                        onClick,
+                        onClick,
+                        () => { },
+                        () => { },
+                        () => { },
+                        () => { },
+                        ApplicationLauncher.AppScenes.FLIGHT,
+                        (Texture)GameDatabase.Instance.GetTexture(String.Format("SteamGauges/{0}", gauge.getTextureName()), false));
+                appButtons[index] = button;
+            }
+        }
+
         //Clean up buttons
         private void OnDestroy()
         {
@@ -188,6 +253,13 @@ namespace SteamGauges
                 if (btn != null)
                 {
                     btn.Destroy();
+                }
+            }
+            foreach (ApplicationLauncherButton btn in appButtons)
+            {
+                if (btn != null)
+                {
+                    ApplicationLauncher.Instance.RemoveModApplication(btn);
                 }
             }
         }
