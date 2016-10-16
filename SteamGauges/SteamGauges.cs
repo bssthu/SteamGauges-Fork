@@ -106,8 +106,6 @@ namespace SteamGauges
                 nodeGauge.Initialize(this, 8909, "node_gauge.png", enableNodeGauge);
                 hudGauge = new HudGauge();
                 hudGauge.Initialize(this, 8910, enableHUDGauge);
-                AddToPreDrawQueue(hudGauge.OnPreDraw);
-                AddToPostDrawQueue(hudGauge.OnDraw);
                 airGauge = new AirGauge();
                 airGauge.Initialize(this, 8911, "air_gauge.png", enableAirGauge);
                 navGauge = new NavGauge();
