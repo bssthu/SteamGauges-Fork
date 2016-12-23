@@ -221,6 +221,7 @@ namespace SteamGauges
                 if (!Input.GetKey(key))
                     return;
             toggle();
+            home.SaveMe();
         }
 
         // Fine control by dragging mouse. Idea inspired by HydroTech Mouse Drive, but:
