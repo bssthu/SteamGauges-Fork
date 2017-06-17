@@ -37,6 +37,7 @@ namespace SteamGauges
         private bool _hasInitStyles = false;                                        //Only initialize once
         private static bool isMinimized = true;                                     //Is the window currently minimized?
         private static bool advMinimized = true;                                    //Advanced settings window
+        public static bool isShowUi = true;                                         //Show GUI
         private bool _allToolbar;                                                   //If true, replaces the main window with a bunch of toolbar buttons
         public static bool windowLock;                                              //Are the windows locked in position, or dragable?
         private static Rect _advwindowPosition;                                     //Advanced settings window
@@ -124,6 +125,9 @@ namespace SteamGauges
             {
                 GameEvents.onGUIApplicationLauncherReady.Add(InitializeButtons);
             }
+            // show & hide gui
+            GameEvents.onShowUI.Add(() => OnShowUI(true));
+            GameEvents.onHideUI.Add(() => OnShowUI(false));
             if (debug) Debug.Log("(SG) SteamGauges initialization comlete.");
         }
 
@@ -241,6 +245,11 @@ namespace SteamGauges
                         (Texture)GameDatabase.Instance.GetTexture(String.Format("SteamGauges/{0}", gauge.getTextureName()), false));
                 appButtons[index] = button;
             }
+        }
+
+        private void OnShowUI(bool isShow)
+        {
+            isShowUi = isShow;
         }
 
         //Clean up buttons
@@ -695,6 +704,10 @@ namespace SteamGauges
 
         private void OnGUI()
         {
+            if (!isShowUi)
+            {
+                return;
+            }
             if (Event.current.type == EventType.Repaint || Event.current.isMouse)
             {
                 if (preDrawCallbacks != null)
