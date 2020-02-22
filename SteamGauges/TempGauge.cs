@@ -20,7 +20,7 @@ namespace SteamGauges
         protected override void GaugeActions()
         {
             // This gauge only draws stuff, no need to handle other events
-            if (Event.current.type != EventType.repaint)
+            if (Event.current.type != EventType.Repaint)
                 return;
             //Debug.Log("(SG) Temp Gauge Actions");
             //Draw the bezel, if selected

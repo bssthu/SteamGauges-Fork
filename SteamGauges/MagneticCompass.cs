@@ -17,7 +17,7 @@ namespace SteamGauges
         protected override void GaugeActions()
         {
             // This code only draws stuff, no need to handle other events
-            if (Event.current.type != EventType.repaint)
+            if (Event.current.type != EventType.Repaint)
                 return;
             //Draw the compass band
             drawHeading();

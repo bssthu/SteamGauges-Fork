@@ -66,7 +66,7 @@ namespace SteamGauges
         protected override void GaugeActions()
         {
             // This gauge only draws stuff, no need to handle other events
-            if (Event.current.type != EventType.repaint)
+            if (Event.current.type != EventType.Repaint)
                 return;
             //Left gauge - Orbital information
             //Draw the face (background)

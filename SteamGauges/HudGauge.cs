@@ -397,7 +397,7 @@ namespace SteamGauges
         new private void OnWindow(int WindowID)
         {
             // Only do all this stuff when requested to actually paint something
-            if (Event.current.type == EventType.repaint)
+            if (Event.current.type == EventType.Repaint)
                 DrawDisplay(false);
 
             HandleInput(WindowID, 150f, 100f);
@@ -406,7 +406,7 @@ namespace SteamGauges
         private void OnMiniWindow(int WindowID)
         {
             // Only do all this stuff when requested to actually paint something
-            if (Event.current.type == EventType.repaint)
+            if (Event.current.type == EventType.Repaint)
                 DrawDisplay(true);
 
             // Only initiate mouse input in the central dead zone
@@ -985,7 +985,7 @@ namespace SteamGauges
                 }
             }
             //Draw pitch ladder, unless in vertical ascent mode
-            if (Event.current.type == EventType.repaint)
+            if (Event.current.type == EventType.Repaint)
             {
                 float xsize = 150, ysize = 325;
                 Rect area = new Rect(362 * Scale, 59 * Scale, xsize * 2 * Scale, ysize * 2 * Scale);

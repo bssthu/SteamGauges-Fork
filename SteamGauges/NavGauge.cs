@@ -25,11 +25,11 @@ namespace SteamGauges
         {
             nav_select = new Rect(335 * Scale, 25 * Scale, 48 * Scale, 48 * Scale);
             //handle mouse input
-            if (Event.current.type == EventType.mouseUp && nav_select.Contains(Event.current.mousePosition))
+            if (Event.current.type == EventType.MouseUp && nav_select.Contains(Event.current.mousePosition))
             {
                 SteamShip.NavWaypointId = SteamShip.NavWaypointId + 1;
             }
-            if (Event.current.type == EventType.repaint)
+            if (Event.current.type == EventType.Repaint)
             {
                 //Draw the compass card (and bearing pointer)
                 drawCard();

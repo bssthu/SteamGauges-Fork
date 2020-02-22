@@ -164,7 +164,7 @@ namespace SteamGauges
         {
             if (buttons != null && useDrawButtons)
             {
-                if (Event.current.type != EventType.repaint)
+                if (Event.current.type != EventType.Repaint)
                     return;
                 for (int i = 0; i < buttons.Length; i++)
                 {

@@ -56,7 +56,7 @@ namespace SteamGauges
             useEAS = buttons[0].active;
 
             // This code only draws stuff, no need to handle other events
-            if (Event.current.type != EventType.repaint)
+            if (Event.current.type != EventType.Repaint)
                 return;
 
             //Draw the bezel, if selected
