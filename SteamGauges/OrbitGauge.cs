@@ -70,7 +70,7 @@ namespace SteamGauges
         protected override void GaugeActions()
         {
             // This gauge only draws stuff, no need to handle other events
-            if (Event.current.type != EventType.repaint)
+            if (Event.current.type != EventType.Repaint)
                 return;
             //Draw the face (background)
             GUI.DrawTextureWithTexCoords(new Rect(0f, 0f, 400f * Scale, 407f * Scale), texture, new Rect(0.5f, 0.5f, 0.5f, 0.5f));

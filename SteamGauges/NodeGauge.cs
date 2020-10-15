@@ -75,7 +75,7 @@ namespace SteamGauges
                 return;
             }
             automation(node);
-            if (Event.current.type == EventType.repaint)
+            if (Event.current.type == EventType.Repaint)
                 PaintGauge(node);
             //Auto Burn toggle
             if (Event.current.type == EventType.MouseUp && burn_toggle.Contains(Event.current.mousePosition))

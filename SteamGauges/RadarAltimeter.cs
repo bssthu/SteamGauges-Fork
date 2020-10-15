@@ -101,7 +101,7 @@ namespace SteamGauges
             auto_burn = buttons[0].active;
             contact_stop = buttons[1].active;
             // This gauge only draws stuff, no need to handle other events
-            if (Event.current.type != EventType.repaint)
+            if (Event.current.type != EventType.Repaint)
                 return;
             //Draw the bezel, if selected
             if (SteamGauges.drawBezels)

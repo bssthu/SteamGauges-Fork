@@ -27,9 +27,9 @@ namespace SteamGauges
     {
         //This version of SteamGauges is compatible with KSP 1.2.2 - for use in CompatabilityChecker
         public static int CompatibleMajorVersion { get { return 1; } }
-        public static int CompatibleMinorVersion { get { return 4; } }
-        public static int CompatibleRevisionVersion { get { return 2; } }
-        public static String VersionString { get { return "1.7.2"; } }
+        public static int CompatibleMinorVersion { get { return 9; } }
+        public static int CompatibleRevisionVersion { get { return 0; } }
+        public static String VersionString { get { return "1.7.3"; } }
 
         public static bool debug = false;                                            //If this is true, prints debug info to the console
         private static Rect _windowPosition;                                        //The position for the options window (left, top, width, height)
@@ -151,28 +151,34 @@ namespace SteamGauges
 
             if (ToolbarManager.ToolbarAvailable)
             {
-                IButton steam_button = ToolbarManager.Instance.add("SteamGauges", "steamgauges0");
-                steam_button.TexturePath = "SteamGauges/sgi";
-                steam_button.ToolTip = "SteamGauges Menu";
-                steam_button.Visibility = new GameScenesVisibility(GameScenes.FLIGHT);
-                steam_button.OnClick += (e) =>
+                if (buttons[0] == null)
                 {
-                    onClickSteamButton();
-                };
-                buttons[0] = steam_button;
+                    IButton steam_button = ToolbarManager.Instance.add("SteamGauges", "steamgauges0");
+                    steam_button.TexturePath = "SteamGauges/sgi";
+                    steam_button.ToolTip = "SteamGauges Menu";
+                    steam_button.Visibility = new GameScenesVisibility(GameScenes.FLIGHT);
+                    steam_button.OnClick += (e) =>
+                    {
+                        onClickSteamButton();
+                    };
+                    buttons[0] = steam_button;
+                }
             }
             else if (ApplicationLauncher.Ready)
             {
-                ApplicationLauncherButton steam_button = ApplicationLauncher.Instance.AddModApplication(
+                if (appButtons[0] == null)
+                {
+                    ApplicationLauncherButton steam_button = ApplicationLauncher.Instance.AddModApplication(
                         onClickSteamButton,
                         onClickSteamButton,
-                        () => { },
-                        () => { },
-                        () => { },
-                        () => { },
+                        null,
+                        null,
+                        null,
+                        null,
                         ApplicationLauncher.AppScenes.FLIGHT,
                         (Texture)GameDatabase.Instance.GetTexture("SteamGauges/sgi", false));
-                appButtons[0] = steam_button;
+                    appButtons[0] = steam_button;
+                }
             }
 
             AddButton(airGauge, enableAirGauge, 1);
@@ -202,7 +208,7 @@ namespace SteamGauges
 
         private void AddToolbarButton(Gauge gauge, bool enable, int index)
         {
-            if (enable)
+            if (enable && buttons[index] == null)
             {
                 IButton btn = ToolbarManager.Instance.add("SteamGauges", String.Format("steamgauges{0}", index));
                 btn.TexturePath = String.Format("SteamGauges/{0}", gauge.getTextureName());
@@ -227,7 +233,7 @@ namespace SteamGauges
 
         private void AddAppLaunchButton(Gauge gauge, bool enable, int index)
         {
-            if (enable)
+            if (enable && appButtons[index] == null)
             {
                 Callback onClick = () =>
                 {
@@ -237,10 +243,10 @@ namespace SteamGauges
                 ApplicationLauncherButton button = ApplicationLauncher.Instance.AddModApplication(
                         onClick,
                         onClick,
-                        () => { },
-                        () => { },
-                        () => { },
-                        () => { },
+                        null,
+                        null,
+                        null,
+                        null,
                         ApplicationLauncher.AppScenes.FLIGHT,
                         (Texture)GameDatabase.Instance.GetTexture(String.Format("SteamGauges/{0}", gauge.getTextureName()), false));
                 appButtons[index] = button;
@@ -253,7 +259,7 @@ namespace SteamGauges
         }
 
         //Clean up buttons
-        private void OnDestroy()
+        public void OnDestroy()
         {
             foreach (IButton btn in buttons)
             {
