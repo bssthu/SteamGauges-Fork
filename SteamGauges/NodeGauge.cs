@@ -3,6 +3,8 @@ using KSP;
 using KSP.IO;
 using KSP.UI.Screens.Flight;
 using System;
+using KSP_Log;
+
 
 namespace SteamGauges
 {
@@ -19,6 +21,7 @@ namespace SteamGauges
         private long timeToBurn=999;                                     //Stored value of time until burn
         private Rect burn_toggle;
         private Rect shutdown_toggle;
+
 
         public override string getTextureName() { return "node"; }
         public override string getTooltipName() { return "Node Gauge"; }
@@ -140,11 +143,11 @@ namespace SteamGauges
                 {
                     autoShutdown = false;
                     FlightInputHandler.state.mainThrottle = 0;
-                    Debug.Log("(SG) Burn complete, throttle back.");
+                    Log.Info("(SG) Burn complete, throttle back.");
                 }
             }
         
-            //if (offTarget(myNode.GetBurnVector(FlightGlobals.ActiveVessel.orbit),7.2f)) Debug.Log("Off target!");
+            //if (offTarget(myNode.GetBurnVector(FlightGlobals.ActiveVessel.orbit),7.2f)) Log.Info("Off target!");
             //Auto burn
             if (autoBurn)
             {
@@ -161,7 +164,7 @@ namespace SteamGauges
                     //Add check for w/in 2 degrees
                     autoBurn = false;
                     FlightInputHandler.state.mainThrottle = 1;
-                    Debug.Log("(SG) Node reached, commencing burn!");
+                    Log.Info("(SG) Node reached, commencing burn!");
                 }
             }
             //update min delta V every .2 seconds
@@ -198,9 +201,9 @@ namespace SteamGauges
             deltaV = myNode.DeltaV.magnitude;                                       //The burn's ΔV
             deltaVRem = myNode.GetBurnVector(FlightGlobals.ActiveVessel.orbit).magnitude;   //Remaining ΔV in the burn
             //res r = calculateThrust(FlightGlobals.ActiveVessel);                    //Actually calculates thrust, mass, and Isp
-            //Debug.Log("Mass: " + Math.Round(r.mass, 2) + " Thrust: " + Math.Round(r.thrust, 2) + " ISP: " + Math.Round(r.isp, 2));
+            //Log.Info("Mass: " + Math.Round(r.mass, 2) + " Thrust: " + Math.Round(r.thrust, 2) + " ISP: " + Math.Round(r.isp, 2));
             //double mass = SteamShip.Mass / Math.Pow(Math.E, (deltaVRem / (SteamShip.ISP*9.82)));    //Mass after burn   Changed from 9.821
-            //Debug.Log("Final Mass: " + Math.Round(mass, 2)+" Burn Mass: "+Math.Round(r.mass-mass,2));
+            //Log.Info("Final Mass: " + Math.Round(mass, 2)+" Burn Mass: "+Math.Round(r.mass-mass,2));
             //double rate = SteamShip.MaxThrust / (SteamShip.ISP*9.82);                                  //Mass flow rate, rounded to 5 digits
             //double burnTime = (SteamShip.Mass - mass)/rate;                                 //Mass to burn over rate should give time, but doesn't
             //burnTime += SteamShip.EngineAccel+SteamShip.EngineDecel;                        //Compensate for slow throttles
@@ -283,7 +286,7 @@ namespace SteamGauges
                             if (pm.moduleName.Equals("ModuleEngines"))
                             {
                                 ModuleEngines e = pm as ModuleEngines;
-                                /*Debug.Log("Engine: "+p.InternalModelName);
+                                /*Log.Info("Engine: "+p.InternalModelName);
                                 String status = p.partName+" status: ";
                                 if (e.engineShutdown) status += "Shutdown ";
                                 if (e.getFlameoutState) status += "Flamed Out ";
@@ -292,10 +295,10 @@ namespace SteamGauges
                                 if (e.isOperational) status += "Operational ";
                                 status += e.status;
                                 status += e.statusL2;
-                                Debug.Log(status); */
+                                Log.Info(status); */
                                 if ((e != null) &&  e.isOperational)
                                 {
-                                    //Debug.Log("Active engine!");
+                                    //Log.Info("Active engine!");
                                     r.isp += e.maxThrust / e.atmosphereCurve.Evaluate((float)v.staticPressurekPa);
                                     r.thrust += e.maxThrust;
                                 }

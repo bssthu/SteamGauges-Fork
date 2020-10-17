@@ -10,6 +10,8 @@ namespace SteamGauges
         public override string getTextureName() { return "temp"; }
         public override string getTooltipName() { return "Temp Gauge"; }
 
+
+
         //Draw if not minimized
         protected override bool isVisible()
         {
@@ -22,7 +24,7 @@ namespace SteamGauges
             // This gauge only draws stuff, no need to handle other events
             if (Event.current.type != EventType.Repaint)
                 return;
-            //Debug.Log("(SG) Temp Gauge Actions");
+            //Log.Info("(SG) Temp Gauge Actions");
             //Draw the bezel, if selected
             if (SteamGauges.drawBezels)
                 GUI.DrawTextureWithTexCoords(new Rect(0f, 0f, 400f * Scale, 407f * Scale), texture, new Rect(0f, 0.5f, 0.5f, 0.5f));
@@ -46,7 +48,7 @@ namespace SteamGauges
             double rotation = SteamShip.MaxPartTemp * 60;
             //Now correct for the needle starting at vertical
             rotation -= 29;
-            //Debug.Log("(SG) Temp percent "+(int)(SteamShip.MaxPartTemp*100)+"% Needle rotation: "+(int)rotation);
+            //Log.Info("(SG) Temp percent "+(int)(SteamShip.MaxPartTemp*100)+"% Needle rotation: "+(int)rotation);
             Vector2 pivotPoint = new Vector2(200 * Scale, 325 * Scale);    //needle rotation point
             GUIUtility.RotateAroundPivot((float)(rotation), pivotPoint);
             GUI.DrawTextureWithTexCoords(new Rect(195f * Scale, 104f * Scale, 10f * Scale, 240f * Scale), texture, new Rect(0.7850f, 0.0700f, 0.0125f, 0.2838f));
@@ -56,7 +58,7 @@ namespace SteamGauges
         //Covers the ablation lights as appropriate
         private void drawAblation()
         {
-            //Debug.Log("(SG) Drawing ablation "+(SteamShip.AblationRem*100)+"%");
+            //Log.Info("(SG) Drawing ablation "+(SteamShip.AblationRem*100)+"%");
             //each if statement draws the grey square over the appropriate light
             if (SteamShip.AblationRem < .9)
                 GUI.DrawTextureWithTexCoords(new Rect(244f * Scale, 236f * Scale, 9f * Scale, 23f * Scale), texture, new Rect(0.69125f, 0.1167f, 0.01125f, 0.0283f));
@@ -91,7 +93,7 @@ namespace SteamGauges
             hundreds = (int) (SteamShip.MaxPartTempActual % 1000) / 100;
             tens = (int)(SteamShip.MaxPartTempActual % 100) / 10;
             ones = (float) SteamShip.MaxPartTempActual % 10;
-            //Debug.Log("(SG) Part Temp: "+SteamShip.MaxPartTempActual+" = "+thousands.ToString()+hundreds.ToString()+tens.ToString()+ones.ToString());
+            //Log.Info("(SG) Part Temp: "+SteamShip.MaxPartTempActual+" = "+thousands.ToString()+hundreds.ToString()+tens.ToString()+ones.ToString());
             //draw thousands
             GUI.DrawTextureWithTexCoords(new Rect(150f * Scale, 139f * Scale, 20f * Scale, 29f * Scale), texture, new Rect(.56625f, .0147f + (0.0356f * thousands), 0.025f, 0.0356f));
             //draw hundreds

@@ -4,6 +4,7 @@ using KSP.IO;
 using KSP.UI.Screens.Flight;
 using ModuleWheels;
 using System;
+using KSP_Log;
 
 namespace SteamGauges
 {
@@ -46,6 +47,7 @@ namespace SteamGauges
 
         public override string getTextureName() { return "hud"; }
         public override string getTooltipName() { return "HUD"; }
+
 
         //This isn't ever called becuase I'm hiding the onDraw method, but it needs to be in the class none the less.
         protected override void GaugeActions()
@@ -953,7 +955,7 @@ namespace SteamGauges
                     pitch += 90f;
                 }
                 Transform pro = ball.progradeVector;
-                //Debug.Log("Pos: " + pro.position.x + ", " + pro.position.y + ", " + pro.position.z);
+                //Log.Info("Pos: " + pro.position.x + ", " + pro.position.y + ", " + pro.position.z);
             }
 
             //Roll scale
@@ -1343,7 +1345,7 @@ namespace SteamGauges
             {
                 if (height < 14)
                 {
-                    //Debug.Log("VS: "+vs+" H: "+height+" ("+(893*Scale)+", "+(368-height)*Scale+", "+(22*Scale)+", "+(height*Scale)+") (0.7422, "+(234f-height)/768f+", 0.0195, "+(height/768f)+")");
+                    //Log.Info("VS: "+vs+" H: "+height+" ("+(893*Scale)+", "+(368-height)*Scale+", "+(22*Scale)+", "+(height*Scale)+") (0.7422, "+(234f-height)/768f+", 0.0195, "+(height/768f)+")");
                     GUI.DrawTextureWithTexCoords(new Rect(893 * Scale, (381 - height) * Scale, 22 * Scale, height * Scale), Resources.HUD_extras, new Rect(0.7422f, (248f - height) / 768f, 0.0195f, 0.0182f));  //triangle growing from 0
                 }
                 else
@@ -1846,7 +1848,7 @@ namespace SteamGauges
             }
             catch
             {
-                Debug.Log("Couldn't read keys from config.");
+                Log.Error("Couldn't read keys from config.");
                 //Use default
                 hudKeys = new KeyCode[2];
                 hudKeys[0] = KeyCode.LeftAlt;

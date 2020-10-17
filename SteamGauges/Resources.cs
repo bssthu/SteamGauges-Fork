@@ -1,6 +1,8 @@
 ﻿using System;
 using UnityEngine;
 using KSP;
+using ToolbarControl_NS;
+using KSP_Log;
 
 namespace SteamGauges
 {
@@ -36,7 +38,7 @@ namespace SteamGauges
         public static Texture2D HUD_digits = new Texture2D(20, 330);
         public static Texture2D HUD_digits6 = new Texture2D(20, 210);
         public static Texture2D HUD_chars = new Texture2D(20, 150);
-        public static Texture2D HUD_compass = new Texture2D(3500, 110); 
+        public static Texture2D HUD_compass = new Texture2D(3500, 110);
         public static Texture2D HUD_ladder = new Texture2D(300, 2600);
         public static Material HUD_ladder_mat = null;
         public static Texture2D HUD_vert = new Texture2D(900, 900);
@@ -54,10 +56,22 @@ namespace SteamGauges
         public static Texture2D HUD_extras = new Texture2D(1024, 768);
 
         //Actually load the textures from files
+        const string DIR = "GameData/SteamGauges/PluginData/SteamGauges/";
+        static internal Log Log = new Log("SteamGauges.Resources", Log.LEVEL.INFO);
+
+        static internal void LoadImage(ref Texture2D tex, string name)
+        {
+            if (!ToolbarControl.LoadImageFromFile(ref tex, Resources.DIR + name))
+            {
+                Log.Info("Unable to load image from file:  " + DIR + name);
+            }
+
+        }
         public static void loadAssets()
         {
             if (loaded) return;     //Don't releoad assets
-            Byte[] arrBytes;
+            //Byte[] arrBytes;
+            Texture2D tex = new Texture2D(2, 2);
             //Radar Altimeter
             //arrBytes = KSP.IO.File.ReadAllBytes<SteamGauges>("rad_alt.png");
             //rad_alt_atlas.LoadImage(arrBytes);
@@ -73,18 +87,28 @@ namespace SteamGauges
             //Orbital Gauge
             //arrBytes = KSP.IO.File.ReadAllBytes<SteamGauges>("orbit_gauge.png");
             //orbit_atlas.LoadImage(arrBytes);
-            arrBytes = KSP.IO.File.ReadAllBytes<SteamGauges>("digits.png");
-            digits.LoadImage(arrBytes);
-            arrBytes = KSP.IO.File.ReadAllBytes<SteamGauges>("digits6.png");
-            digits6.LoadImage(arrBytes);
-            arrBytes = KSP.IO.File.ReadAllBytes<SteamGauges>("orbit_chars.png");
-            orbit_chars.LoadImage(arrBytes);
+            LoadImage(ref digits,  "digits.png");
+            //arrBytes = KSP.IO.File.ReadAllBytes<SteamGauges>("digits.png");
+            //digits.LoadImage(tex);
+
+            LoadImage(ref digits6,  "digits6.png");
+            //arrBytes = KSP.IO.File.ReadAllBytes<SteamGauges>("digits6.png");
+            //digits6.LoadImage(arrBytes);
+
+            LoadImage(ref orbit_chars,  "orbit_chars.png");
+            //arrBytes = KSP.IO.File.ReadAllBytes<SteamGauges>("orbit_chars.png");
+            //orbit_chars.LoadImage(arrBytes);
+
             //Rendesvous Gauge
             //arrBytes = KSP.IO.File.ReadAllBytes<SteamGauges>("RZ_gauge.png");
             //RZ_atlas.LoadImage(arrBytes);
             //Minus sign for digits
-            arrBytes = KSP.IO.File.ReadAllBytes<SteamGauges>("minus.png");
-            minus.LoadImage(arrBytes);
+
+            LoadImage(ref minus,  "minus.png");
+            //arrBytes = KSP.IO.File.ReadAllBytes<SteamGauges>("minus.png");
+            //minus.LoadImage(arrBytes);
+
+
             //Maneuver Node
             //arrBytes = KSP.IO.File.ReadAllBytes<SteamGauges>("node_gauge.png");
             //node_atlas.LoadImage(arrBytes);
@@ -96,47 +120,88 @@ namespace SteamGauges
             //HUD_bg.LoadImage(arrBytes);
             //arrBytes = KSP.IO.File.ReadAllBytes<SteamGauges>("hud_roll_pointer.png");
             //HUD_roll_ptr.LoadImage(arrBytes);
-            arrBytes = KSP.IO.File.ReadAllBytes<SteamGauges>("hud_digits.png");
-            HUD_digits.LoadImage(arrBytes);
-            arrBytes = KSP.IO.File.ReadAllBytes<SteamGauges>("hud_digits6.png");
-            HUD_digits6.LoadImage(arrBytes);
-            arrBytes = KSP.IO.File.ReadAllBytes<SteamGauges>("hud_chars.png");
-            HUD_chars.LoadImage(arrBytes);
-            arrBytes = KSP.IO.File.ReadAllBytes<SteamGauges>("hud_compass.png");
-            HUD_compass.LoadImage(arrBytes);
-            arrBytes = KSP.IO.File.ReadAllBytes<SteamGauges>("hud_ladder.png");
-            HUD_ladder.LoadImage(arrBytes);
+            LoadImage(ref HUD_digits,  "hud_digits.png");
+            //arrBytes = KSP.IO.File.ReadAllBytes<SteamGauges>("hud_digits.png");
+            //HUD_digits.LoadImage(arrBytes);
+
+            LoadImage(ref HUD_digits6,  "hud_digits6.png");
+            //arrBytes = KSP.IO.File.ReadAllBytes<SteamGauges>("hud_digits6.png");
+            //HUD_digits6.LoadImage(arrBytes);
+
+            LoadImage(ref HUD_chars,  "hud_chars.png");
+            //arrBytes = KSP.IO.File.ReadAllBytes<SteamGauges>("hud_chars.png");
+            //HUD_chars.LoadImage(arrBytes);
+
+            LoadImage(ref HUD_compass,  "hud_compass.png");
+            //arrBytes = KSP.IO.File.ReadAllBytes<SteamGauges>("hud_compass.png");
+            //HUD_compass.LoadImage(arrBytes);
+
+            LoadImage(ref HUD_ladder,  "hud_ladder.png");
+            //arrBytes = KSP.IO.File.ReadAllBytes<SteamGauges>("hud_ladder.png");
+            //HUD_ladder.LoadImage(arrBytes);
+
+
             HUD_ladder.wrapMode = TextureWrapMode.Clamp;
             HUD_ladder_mat = new Material(Shader.Find("Hidden/Internal-GUITexture"));
             HUD_ladder_mat.mainTexture = Resources.HUD_ladder;
-            arrBytes = KSP.IO.File.ReadAllBytes<SteamGauges>("hud_vert.png");
-            HUD_vert.LoadImage(arrBytes);
+
+            LoadImage(ref HUD_vert,  "hud_vert.png");
+            //arrBytes = KSP.IO.File.ReadAllBytes<SteamGauges>("hud_vert.png");
+            //HUD_vert.LoadImage(arrBytes);
+
             HUD_vert.wrapMode = TextureWrapMode.Clamp;
             HUD_vert_mat = new Material(Shader.Find("Hidden/Internal-GUITexture"));
+
+            LoadImage(ref HUD_vertd,  "hud_vertd.png");
             HUD_vert_mat.mainTexture = Resources.HUD_vert;
-            arrBytes = KSP.IO.File.ReadAllBytes<SteamGauges>("hud_vertd.png");
-            HUD_vertd.LoadImage(arrBytes);
+            //arrBytes = KSP.IO.File.ReadAllBytes<SteamGauges>("hud_vertd.png");            
+            //HUD_vertd.LoadImage(arrBytes);
             HUD_vertd.wrapMode = TextureWrapMode.Clamp;
             HUD_vertd_mat = new Material(Shader.Find("Hidden/Internal-GUITexture"));
             HUD_vertd_mat.mainTexture = Resources.HUD_vertd;
-            arrBytes = KSP.IO.File.ReadAllBytes<SteamGauges>("hud_speed_tape1.png");
-            HUD_speed_tape1.LoadImage(arrBytes);
-            arrBytes = KSP.IO.File.ReadAllBytes<SteamGauges>("hud_speed_tape2.png");
-            HUD_speed_tape2.LoadImage(arrBytes);
-            arrBytes = KSP.IO.File.ReadAllBytes<SteamGauges>("hud_speed_tape3.png");
-            HUD_speed_tape3.LoadImage(arrBytes);
-            arrBytes = KSP.IO.File.ReadAllBytes<SteamGauges>("hud_speed_tape4.png");
-            HUD_speed_tape4.LoadImage(arrBytes);
-            arrBytes = KSP.IO.File.ReadAllBytes<SteamGauges>("hud_alt_tape1.png");
-            HUD_alt_tape1.LoadImage(arrBytes);
-            arrBytes = KSP.IO.File.ReadAllBytes<SteamGauges>("hud_alt_tape2.png");
-            HUD_alt_tape2.LoadImage(arrBytes);
-            arrBytes = KSP.IO.File.ReadAllBytes<SteamGauges>("hud_alt_tape3.png");
-            HUD_alt_tape3.LoadImage(arrBytes);
-            arrBytes = KSP.IO.File.ReadAllBytes<SteamGauges>("hud_alt_tape4.png");
-            HUD_alt_tape4.LoadImage(arrBytes);
-            arrBytes = KSP.IO.File.ReadAllBytes<SteamGauges>("hud_extras.png");
-            HUD_extras.LoadImage(arrBytes);
+
+            LoadImage(ref HUD_speed_tape1,  "hud_speed_tape1.png");
+            //arrBytes = KSP.IO.File.ReadAllBytes<SteamGauges>("hud_speed_tape1.png");
+            //HUD_speed_tape1.LoadImage(arrBytes);
+
+            LoadImage(ref HUD_speed_tape2,  "hud_speed_tape2.png");
+            //arrBytes = KSP.IO.File.ReadAllBytes<SteamGauges>("hud_speed_tape2.png");
+            //HUD_speed_tape2.LoadImage(arrBytes);
+
+            LoadImage(ref HUD_speed_tape3,  "hud_speed_tape3.png");
+            //arrBytes = KSP.IO.File.ReadAllBytes<SteamGauges>("hud_speed_tape3.png");
+            //HUD_speed_tape3.LoadImage(arrBytes);
+
+
+
+            LoadImage(ref HUD_speed_tape4,  "hud_speed_tape4.png");
+            //arrBytes = KSP.IO.File.ReadAllBytes<SteamGauges>("hud_speed_tape4.png");
+            //HUD_speed_tape4.LoadImage(arrBytes);
+
+
+            LoadImage(ref HUD_alt_tape1,  "hud_alt_tape1.png");
+            //arrBytes = KSP.IO.File.ReadAllBytes<SteamGauges>("hud_alt_tape1.png");
+            //HUD_alt_tape1.LoadImage(arrBytes);
+
+
+            LoadImage(ref HUD_alt_tape2,  "hud_alt_tape2.png");
+            //arrBytes = KSP.IO.File.ReadAllBytes<SteamGauges>("hud_alt_tape2.png");
+            //HUD_alt_tape2.LoadImage(arrBytes);
+
+
+            LoadImage(ref HUD_alt_tape3,  "hud_alt_tape3.png");
+            //arrBytes = KSP.IO.File.ReadAllBytes<SteamGauges>("hud_alt_tape3.png");
+            //HUD_alt_tape3.LoadImage(arrBytes);
+
+
+            LoadImage(ref HUD_alt_tape4,  "hud_alt_tape4.png");
+            //arrBytes = KSP.IO.File.ReadAllBytes<SteamGauges>("hud_alt_tape4.png");
+            //HUD_alt_tape4.LoadImage(arrBytes);
+
+
+            LoadImage(ref HUD_extras,  "hud_extras.png");
+            //arrBytes = KSP.IO.File.ReadAllBytes<SteamGauges>("hud_extras.png");
+            //HUD_extras.LoadImage(arrBytes);
             loaded = true;
         }
 

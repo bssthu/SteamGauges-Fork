@@ -3,6 +3,8 @@ using KSP;
 using UnityEngine;
 using KSP.IO;
 using System.Collections.Generic;
+using KSP_Log;
+
 
 namespace SteamGauges
 {
@@ -38,6 +40,8 @@ namespace SteamGauges
 
         private static Dictionary<String, Texture2D> texture_cache = new Dictionary<String, Texture2D>();
 
+        internal Log Log;
+
         public float getScale()
         {
             return Scale;
@@ -53,16 +57,25 @@ namespace SteamGauges
         //Simple initialization code
         public bool Initialize(SteamGauges sg, int id, String texture_name, bool enable,int tex_w=800, int tex_h=814, int w=400, int h=407)
         {
+#if DEBUG
+             Log = new Log("SteamGauges." + getTooltipName(), Log.LEVEL.INFO);
+#else
+             Log = new Log("SteamGauges." + getTooltipName(), Log.LEVEL.ERROR);
+#endif
+
+            Log.Info("Initialize, tex_w: " + tex_w + ", tex_h: " + tex_h + ", " + w + ", h: " + h);
             try
             {
                 if (!texture_cache.TryGetValue(texture_name, out this.texture))
                 {
-                    Byte[] array;
-                    array = KSP.IO.File.ReadAllBytes<SteamGauges>(texture_name);
+                    //Byte[] array;
+                    //array = KSP.IO.File.ReadAllBytes<SteamGauges>(texture_name);
+                    texture = new Texture2D(2, 2);
+                    Resources.LoadImage(ref texture, texture_name);
                     //Integral texture loading
-                    this.texture = new Texture2D(tex_w, tex_h);
+                    //this.texture = new Texture2D(tex_w, tex_h);
                     texture_cache.Add(texture_name, this.texture);
-                    texture.LoadImage(array);
+                    //texture.LoadImage(array);
                 }
                 isEnabled = enable;
                 base_width = w;
@@ -75,7 +88,7 @@ namespace SteamGauges
             }
             catch
             {
-                Debug.LogError("Initialization error, probably with "+texture_name);
+                Log.Error("Initialization error, probably with "+texture_name);
                 return false;
             }
             return true;

@@ -2,6 +2,7 @@
 using KSP;
 using KSP.IO;
 using System;
+using KSP_Log;
 
 namespace SteamGauges
 {
@@ -201,23 +202,23 @@ namespace SteamGauges
             switch (next)
             {
                 case "pe":
-                    //Debug.Log("Periapsis next.");
+                    //Log.Info("Periapsis next.");
                     GUI.DrawTextureWithTexCoords(new Rect(139f * Scale, 237f * Scale, 28f * Scale, 23f * Scale), texture, new Rect(0.5938f, 0.3563f, 0.035f, 0.0283f));
                     break;
                 case "ap":
-                    //Debug.Log("Apoapsis next.");
+                    //Log.Info("Apoapsis next.");
                     GUI.DrawTextureWithTexCoords(new Rect(110f * Scale, 237f * Scale, 28f * Scale, 23f * Scale), texture, new Rect(0.5575f, 0.3563f, 0.035f, 0.0283f));
                     break;
                 case "an":
-                    //Debug.Log("Ascending node next.");
+                    //Log.Info("Ascending node next.");
                     GUI.DrawTextureWithTexCoords(new Rect(171f * Scale, 237f * Scale, 28f * Scale, 23f * Scale), texture, new Rect(0.6338f, 0.3563f, 0.035f, 0.0283f));
                     break;
                 case "dn":
-                    //Debug.Log("Descending node next.");
+                    //Log.Info("Descending node next.");
                     GUI.DrawTextureWithTexCoords(new Rect(203f * Scale, 237f * Scale, 29f * Scale, 23f * Scale), texture, new Rect(0.6738f, 0.3563f, 0.03625f, 0.0283f));
                     break;
                 default:
-                    Debug.Log("Error, no time found as next.");
+                    Log.Info("Error, no time found as next.");
                     break;
             }
         }

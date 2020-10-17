@@ -1,0 +1,15 @@
+Changelog
+
+1.8.0
+	Removed compatibility checker
+	Converted all buttons to ToolbarController
+		
+	Converted all constant window ids to using  SpaceTuxUtility.WindowHelper.NextWindowId()
+	Some minor formatting changes
+	Added Clickthrough support to the Settings & the gauge toggle window
+	Added hiding of UI when game is paused
+
+	Dependencies
+		ClickThroughBlocker
+		ToolbarController
+		SpacetuxLibrary
