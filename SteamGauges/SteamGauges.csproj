@@ -63,7 +63,7 @@
     <Compile Include="ElectricalGauge.cs" />
     <Compile Include="FuelGauge.cs" />
     <Compile Include="Gauge.cs" />
-    <Compile Include="HUDGauge.cs" />
+    <Compile Include="HudGauge.cs" />
     <Compile Include="InstallChecker.cs" />
     <Compile Include="MagneticCompass.cs" />
     <Compile Include="NavGauge.cs" />
