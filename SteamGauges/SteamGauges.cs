@@ -33,7 +33,7 @@ namespace SteamGauges
         public static int CompatibleRevisionVersion { get { return 0; } }
         public static String VersionString { get { return "1.7.3"; } }
 
-        public static bool debug = false;                                            //If this is true, prints debug info to the console
+        public static bool debug = true;                                            //If this is true, prints debug info to the console
         private static Rect _windowPosition;                                        //The position for the options window (left, top, width, height)
         public static GUIStyle _windowStyle, _labelStyle, _boldStyle, _buttonStyle, _IconStyle, _toggleStyle;         //Styles for the window and label
         private bool _hasInitStyles = false;                                        //Only initialize once
@@ -68,9 +68,12 @@ namespace SteamGauges
 
         //Blizzy's toolbar buttons
         //private static IButton[] buttons = new IButton[12];
-        ToolbarControl toolbarControl;
+        static ToolbarControl toolbarControl;
+#if DEBUG
         Log Log = new Log("SteamGauges.SteamGauges", Log.LEVEL.INFO);
-
+#else
+  Log Log = new Log("SteamGauges.SteamGauges", Log.LEVEL.ERROR);
+#endif
         internal const string MODID = "SteamGauges_NS";
         internal const string MODNAME = "SteamGauges";
 
@@ -143,25 +146,15 @@ namespace SteamGauges
                 if (debug) Log.Info("(SG) Loading gauge settings...");
                 LoadThem(config);
             }
-            //Blizzy's toolbar buton setup
-#if false
-            if (ToolbarManager.ToolbarAvailable)
-            {
-#endif
+
             InitializeButtons();
-#if false
-        }
-            else
-            {
-                GameEvents.onGUIApplicationLauncherReady.Add(InitializeButtons);
-            }
+
             // show & hide gui
-#endif
             GameEvents.onShowUI.Add(() => OnShowUI(true));
             GameEvents.onHideUI.Add(() => OnShowUI(false));
 
-            GameEvents.onGameUnpause.Add(() => Onpause(false));
-            GameEvents.onGamePause.Add(() => Onpause(true));
+            GameEvents.onGameUnpause.Add(() => OnPause(false));
+            GameEvents.onGamePause.Add(() => OnPause(true));
 
 
 
@@ -188,82 +181,37 @@ namespace SteamGauges
         private void InitializeButtons()
         {
             if (debug) Log.Info("(SG) Initializing SteamGauges/Toolbar Integration");
-#if false
-            Callback onClickSteamButton = () =>
+            if (toolbarControl == null)
             {
-                if (_allToolbar)
-                {
-                    if (debug) Log.Info("(SG) SteamGauges settings toggled.");
-                    advMinimized = !advMinimized;
-                }
-                else
-                {
-                    if (debug) Log.Info("(SG) SteamGauges menu toggled.");
-                    isMinimized = !isMinimized;
-                }
-                SaveMe();
-            };
+                Log.Info("Creating toolbar button");
+                toolbarControl = gameObject.AddComponent<ToolbarControl>();
+                toolbarControl.AddToAllToolbars(onClickSteamButton, onClickSteamButton,
+                     ApplicationLauncher.AppScenes.FLIGHT,
+                    MODID,
+                    "StockSettingsButton",
+                    "SteamGauges/PluginData/Icons/sgi",
+                    "SteamGauges/PluginData/Icons/sgi",
+                    MODNAME
+                    );
+                EnableButton(1);
+                EnableButton(2);
+                EnableButton(3);
+                EnableButton(4);
+                EnableButton(5);
+                EnableButton(6);
+                EnableButton(7);
+                EnableButton(8);
+                EnableButton(9);
+                EnableButton(10);
+                EnableButton(11);
+            }
 
-            if (ToolbarManager.ToolbarAvailable)
-            {
-                if (buttons[0] == null)
-                {
-                    IButton steam_button = ToolbarManager.Instance.add("SteamGauges", "steamgauges0");
-                    steam_button.TexturePath = "SteamGauges/sgi";
-                    steam_button.ToolTip = "SteamGauges Menu";
-                    steam_button.Visibility = new GameScenesVisibility(GameScenes.FLIGHT);
-                    steam_button.OnClick += (e) =>
-                    {
-                        onClickSteamButton();
-                    };
-                    buttons[0] = steam_button;
-                }
-            }
-            else if (ApplicationLauncher.Ready)
-            {
-                if (appButtons[0] == null)
-                {
-                    ApplicationLauncherButton steam_button = ApplicationLauncher.Instance.AddModApplication(
-                        onClickSteamButton,
-                        onClickSteamButton,
-                        null,
-                        null,
-                        null,
-                        null,
-                        ApplicationLauncher.AppScenes.FLIGHT,
-                        (Texture)GameDatabase.Instance.GetTexture("SteamGauges/sgi", false));
-                    appButtons[0] = steam_button;
-                }
-            }
-#endif
-            toolbarControl = gameObject.AddComponent<ToolbarControl>();            toolbarControl.AddToAllToolbars(onClickSteamButton, onClickSteamButton,                 ApplicationLauncher.AppScenes.FLIGHT,                MODID,                "StockSettingsButton",                "SteamGauges/PluginData/Icons/sgi",                "SteamGauges/PluginData/Icons/sgi",                MODNAME
-                );
-            EnableButton(1);
-            EnableButton(2);
-            EnableButton(3);
-            EnableButton(4);
-            EnableButton(5);
-            EnableButton(6);
-            EnableButton(7);
-            EnableButton(8);
-            EnableButton(9);
-            EnableButton(10);
-            EnableButton(11);
         }
 
         private void EnableButton(int index)
         {
-#if false
-            if (ToolbarManager.ToolbarAvailable)
-            {
-                AddToolbarButton(gauge, enable, index);
-            }
-            else if (ApplicationLauncher.Ready)
-            {
-                AddAppLaunchButton(gauge, enable, index);
-            }
-#endif
             if (!_allToolbar) return;
+            Log.Info("EnableButton, index: " + index);
             Gauge gauge = null;
             bool enable = false;
             switch (index)
@@ -293,6 +241,7 @@ namespace SteamGauges
             }
             if (buttons[index] == null)
             {
+                Log.Info("buttons[" + index + "] is null");
                 var texturePath = String.Format("SteamGauges/PluginData/Icons/{0}", gauge.getTextureName());
 
                 var toolbarGameObj = gameObject.AddComponent<ToolbarControl>();
@@ -406,101 +355,43 @@ namespace SteamGauges
             SaveMe();
         }
 
-#if false
-        private void AddToolbarButton(Gauge gauge, bool enable, int index)
-        {
-            if (enable && buttons[index] == null)
-            {
-                IButton btn = ToolbarManager.Instance.add("SteamGauges", String.Format("steamgauges{0}", index));
-                btn.TexturePath = String.Format("SteamGauges/{0}", gauge.getTextureName());
-                if (gauge.isMinimized)
-                    btn.ToolTip = String.Format("{0} On", gauge.getTooltipName());
-                else
-                    btn.ToolTip = String.Format("{0} Off", gauge.getTooltipName());
-                btn.Visible = _allToolbar;
-                btn.Visibility = new GameScenesVisibility(GameScenes.FLIGHT);
-                btn.OnClick += (e) =>
-                {
-                    if (gauge.isMinimized)
-                        btn.ToolTip = String.Format("{0} On", gauge.getTooltipName());
-                    else
-                        btn.ToolTip = String.Format("{0} Off", gauge.getTooltipName());
-                    gauge.toggle();
-                    SaveMe();
-                };
-                buttons[index] = btn;
-            }
-        }
+        private void OnShowUI(bool isShow) { isUIHidden = !isShow; isShowUi = isUIHidden && !isGamePaused; }
 
-        private void AddAppLaunchButton(Gauge gauge, bool enable, int index)
-        {
-            if (enable && appButtons[index] == null)
-            {
-                Callback onClick = () =>
-                {
-                    gauge.toggle();
-                    SaveMe();
-                };
-                ApplicationLauncherButton button = ApplicationLauncher.Instance.AddModApplication(
-                        onClick,
-                        onClick,
-                        null,
-                        null,
-                        null,
-                        null,
-                        ApplicationLauncher.AppScenes.FLIGHT,
-                        (Texture)GameDatabase.Instance.GetTexture(String.Format("SteamGauges/{0}", gauge.getTextureName()), false));
-                appButtons[index] = button;
-            }
-        }
-#endif
-        private void OnShowUI(bool isShow)
-        {
-            isUIHidden = isShow;
-
-            isShowUi = isUIHidden && !isGamePaused;
-        }
-
-        private void Onpause(bool isShow)
-        {
-            isGamePaused = isShow;
-            isShowUi = isUIHidden && !isGamePaused;
-
-        }
+        private void OnPause(bool isShow) { isUIHidden = false; isGamePaused = isShow; isShowUi = !isUIHidden && !isGamePaused; }
 
         //Clean up buttons
         public void OnDestroy()
         {
-#if false
-            foreach (IButton btn in buttons)
-            {
-                if (btn != null)
-                {
-                    btn.Destroy();
-                }
-            }
-            foreach (ApplicationLauncherButton btn in appButtons)
-            {
-                if (btn != null)
-                {
-                    ApplicationLauncher.Instance.RemoveModApplication(btn);
-                }
-            }
-#endif
+            Log.Info("OnDestroy");
             for (int i = 1; i < 12; i++)
             {
                 if (buttons[i] != null)
                 {
                     buttons[i].OnDestroy();
                     Destroy(buttons[i]);
-
+                    buttons[i] = null;
                 }
             }
-            buttons = null;
+            airGauge = null;
+            electricalGauge = null;
+            fuelGauge = null;
+            hudGauge = null;
+            compassGauge = null;
+            nodeGauge = null;
+            orbitGauge = null;
+            radarAltimeter = null;
+            rzGauge = null;
+            navGauge = null;
+            tempGauge = null;
+
+            preDrawCallbacks = null;
+            postDrawCallbacks = null;
+
             toolbarControl.OnDestroy();
             Destroy(toolbarControl);
             toolbarControl = null;
 
+            OnPause(false);
         }
 
         //Save persistant data to the config file
@@ -626,6 +517,7 @@ namespace SteamGauges
             //Draw the main window, if not minimized
             if (!isMinimized)
             {
+                Log.Info("OnDraw, isMinimized is " + isMinimized);
                 //Check window off screen
                 if ((_windowPosition.xMin + _windowPosition.width) < 20) _windowPosition.xMin = 20 - _windowPosition.width; //left limit
                 if (_windowPosition.yMin + _windowPosition.height < 20) _windowPosition.yMin = 20 - _windowPosition.height; //top limit
@@ -639,6 +531,7 @@ namespace SteamGauges
             //Draw the advanced window, if not minimized
             if (!advMinimized)
             {
+                Log.Info("OnDraw, advMinimized is " + advMinimized);
                 //Check window off screen
                 if ((_advwindowPosition.xMin + _advwindowPosition.width) < 20) _advwindowPosition.xMin = 20 - _advwindowPosition.width; //left limit
                 if (_advwindowPosition.yMin + _advwindowPosition.height < 20) _advwindowPosition.yMin = 20 - _advwindowPosition.height; //top limit
@@ -654,6 +547,7 @@ namespace SteamGauges
         //Draw the advanced settings window
         private void OnAdvanced(int WindowID)
         {
+            Log.Info("OnAdvanced, WindowID: " + WindowID);
             //Radar Altimeter Settings
             GUILayout.Label("Radar Altimeter Settings", _boldStyle, GUILayout.Width(500));  //Hopefully set the width of the window betterer
             GUILayout.BeginHorizontal();
@@ -943,15 +837,9 @@ namespace SteamGauges
             }
             if (Event.current.type == EventType.Repaint || Event.current.isMouse)
             {
-                if (preDrawCallbacks != null)
-                {
                     preDrawCallbacks();
-                }
             }
-            if (postDrawCallbacks != null)
-            {
                 postDrawCallbacks();
-            }
         }
 
         //This toggles the visibility of the extra toolbar buttons, based on the user selected mode.
@@ -962,13 +850,6 @@ namespace SteamGauges
                 isMinimized = true;
             for (int i = 1; i < buttons.Length; i++)    // skip first button
             {
-#if false
-                IButton btn = buttons[i];
-                if (btn != null)
-                {
-                    btn.Visible = _allToolbar;
-                }
-#endif
                 if (buttons[i] != null)
                 {
                     DisableButton(i);
@@ -987,6 +868,7 @@ namespace SteamGauges
         //basically, the layout function, but also adds dragability
         private void OnWindow(int WindowID)
         {
+            Log.Info("OnWindow, WindowID: " + WindowID);
             //Directions
             GUILayout.Label("Please select the desired gauges:", _labelStyle);
             //Buttons for each of the gauges
@@ -1057,6 +939,14 @@ namespace SteamGauges
                 navGauge.toggle();
                 SaveMe();
             }
+
+            if (WindowToggle(!navGauge.isMinimized, "Temp Gauge", 130))
+            {
+                tempGauge.toggle();
+                SaveMe();
+            }
+
+
             GUILayout.EndHorizontal();
             //Alpha transparency control
             GUILayout.BeginHorizontal();
