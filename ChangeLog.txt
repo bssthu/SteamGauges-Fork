@@ -1,7 +1,7 @@
 Changelog
 
 1.8.0
-	Removed compatibility checker
+	Removed compatibility checker 
 	Converted all buttons to ToolbarController
 		
 	Converted all constant window ids to using  SpaceTuxUtility.WindowHelper.NextWindowId()
