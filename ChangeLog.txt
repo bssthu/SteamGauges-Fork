@@ -1,5 +1,8 @@
 Changelog
 
+1.8.0.1
+	Removed extra .version file
+
 1.8.0
 	Removed compatibility checker 
 	Converted all buttons to ToolbarController
