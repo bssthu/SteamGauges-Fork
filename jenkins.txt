@@ -31,7 +31,7 @@
 1:SteamGauges, SteamGaugesRecalibrated.version
 
 # 2:PROJNAME, PROJFILE, VERSIONFILE, PLUGINSFOLDER
-2:SteamGauges,SteamGauges/SteamGauges.csproj,SteamGaugesRecalibrated.version,GameData/SteamGauges/Plugins
+2:SteamGauges,SteamGauges/SteamGauges.csproj,SteamGaugesRecalibrated.version,GameData/SteamGauges/Plugins,SteamGaugesRecalibrated
 
 # 3:SOURCEFILE, DESTDIR
 3:SteamGaugesRecalibrated.version,GameData/SteamGauges
