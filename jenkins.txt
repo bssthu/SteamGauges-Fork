@@ -28,10 +28,10 @@
 # 0:1.3
 
 # 1:GAMEDIR, VERSIONFILE [, GITHUBREPO ]
-1:SteamGauges, SteamGaugesRecalibrated.version
+1:SteamGauges, SteamGaugesRecalibrated.version,SteamGaugesRecalibrated
 
 # 2:PROJNAME, PROJFILE, VERSIONFILE, PLUGINSFOLDER
-2:SteamGauges,SteamGauges/SteamGauges.csproj,SteamGaugesRecalibrated.version,GameData/SteamGauges/Plugins,SteamGaugesRecalibrated
+2:SteamGauges,SteamGauges/SteamGauges.csproj,SteamGaugesRecalibrated.version,GameData/SteamGauges/Plugins
 
 # 3:SOURCEFILE, DESTDIR
 3:SteamGaugesRecalibrated.version,GameData/SteamGauges
