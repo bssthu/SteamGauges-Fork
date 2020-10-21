@@ -31,7 +31,7 @@ namespace SteamGauges
         public static int CompatibleMajorVersion { get { return 1; } }
         public static int CompatibleMinorVersion { get { return 9; } }
         public static int CompatibleRevisionVersion { get { return 0; } }
-        public static String VersionString { get { return "1.7.3"; } }
+        public static String VersionString { get { return typeof(SteamGauges).Assembly.GetName().Version.ToString(); } }
 
         public static bool debug = true;                                            //If this is true, prints debug info to the console
         private static Rect _windowPosition;                                        //The position for the options window (left, top, width, height)
@@ -124,9 +124,9 @@ namespace SteamGauges
                 radarAltimeter = new RadarAltimeter();
                 radarAltimeter.Initialize(this, SpaceTuxUtility.WindowHelper.NextWindowId("radarAltimeter"), "rad_alt.png", enableRadarAltimeter);
                 compassGauge = new MagneticCompass();
-                compassGauge.Initialize(this, SpaceTuxUtility.WindowHelper.NextWindowId("radarAltimeter"), "magnetic_compass.png", enableCompass, 1134, 574);
+                compassGauge.Initialize(this, SpaceTuxUtility.WindowHelper.NextWindowId("compassGauge"), "magnetic_compass.png", enableCompass, 1134, 574);
                 electricalGauge = new ElectricalGauge();
-                electricalGauge.Initialize(this, SpaceTuxUtility.WindowHelper.NextWindowId("radarAltimeter"), "ammeter_volmeter.png", enableElectricalGauge);
+                electricalGauge.Initialize(this, SpaceTuxUtility.WindowHelper.NextWindowId("electricalGauge"), "ammeter_volmeter.png", enableElectricalGauge);
                 fuelGauge = new FuelGauge();
                 fuelGauge.Initialize(this, SpaceTuxUtility.WindowHelper.NextWindowId("fuelGauge"), "fuel_gauge.png", enableFuelGauge);
                 orbitGauge = new OrbitGauge();
@@ -940,7 +940,7 @@ namespace SteamGauges
                 SaveMe();
             }
 
-            if (WindowToggle(!navGauge.isMinimized, "Temp Gauge", 130))
+            if (WindowToggle(!tempGauge.isMinimized, "Temp Gauge", 130))
             {
                 tempGauge.toggle();
                 SaveMe();

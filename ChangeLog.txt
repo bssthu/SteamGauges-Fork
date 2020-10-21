@@ -7,8 +7,9 @@ Changelog
 	Converted all constant window ids to using  SpaceTuxUtility.WindowHelper.NextWindowId()
 	Some minor formatting changes
 	Added Clickthrough support to the Settings & the gauge toggle window
-	Added hiding of UI when game is paused\
+	Added hiding of UI when game is paused
 	Added Temp Gauge to controller window
+	Changed static version numbers in title to getting the version from the assembly
 
 	Dependencies
 		ClickThroughBlocker
