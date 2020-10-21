@@ -33,7 +33,8 @@
 	//
 	// Update the following with the name of the .version file which is in the root directory
 	//
-	string versionfile = RootDirectory + "SteamGaugesRegauged.version";
+	string versionfile = RootDirectory + "SteamGaugesRecalibrated.version";
+
 
 
 	if (!File.Exists(versionfile))
