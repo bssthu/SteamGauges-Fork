@@ -37,12 +37,14 @@ namespace SteamGauges
         private float _minGs;                                            //The minimum value for the G meter to display
         private float _minMach;                                          //The minimum value for the mach meter to display
         private string required_technology;                              //The technology required for the HUD to display
-        public KeyCode[] hudKeys;
+
+        public KeyCodeExtended hudKey, hudModifierKey, hudShiftKey;
+
         private bool mouseInputActive = false, mouseInputFlip = false;
         private Vector3 mouse_center;
         private Vessel mouseVessel;
         private static VesselAutopilot.VesselSAS mouseSAS;
-        
+
         private NavBall ball;
 
         public override string getTextureName() { return "hud"; }
@@ -52,7 +54,7 @@ namespace SteamGauges
         //This isn't ever called becuase I'm hiding the onDraw method, but it needs to be in the class none the less.
         protected override void GaugeActions()
         {
-            
+
         }
 
         public void Initialize(SteamGauges sg, int id, bool enable)
@@ -213,17 +215,34 @@ namespace SteamGauges
         }
 
         //Keyboard input for HUD toggle
+        bool modifierKeyPressed = false;
+        bool shiftKeyPressed = false;
         private void keyInput()
         {
             //If no keys are pressed, we're done
             if (!Input.anyKeyDown)
                 return;
             //look for the hud keys
-            foreach (KeyCode key in hudKeys)
-                if (!Input.GetKey(key))
-                    return;
-            toggle();
-            home.SaveMe();
+            if (hudModifierKey.code != KeyCode.None && ExtendedInput.GetKey(GameSettings.MODIFIER_KEY.primary))
+                modifierKeyPressed = true;
+            if (hudShiftKey.code != KeyCode.None && ExtendedInput.GetKey(hudShiftKey))
+                shiftKeyPressed = ExtendedInput.GetKeyDown(hudShiftKey);
+            if (ExtendedInput.GetKey(hudKey))
+            {
+                bool ok = false;
+
+                ok = (hudModifierKey.code == KeyCode.None || modifierKeyPressed);
+                ok = ok && (hudShiftKey.code == KeyCode.None ||   shiftKeyPressed);
+                if (ok)
+                {
+                    toggle();
+                    home.SaveMe();
+                }
+            } else
+            {
+                modifierKeyPressed = false;
+                shiftKeyPressed = false;
+            }
         }
 
         // Fine control by dragging mouse. Idea inspired by HydroTech Mouse Drive, but:
@@ -466,7 +485,7 @@ namespace SteamGauges
         private void HandleInput(int WindowID, float mousew, float mouseh)
         {
             //Make it dragable
-            if (!SteamGauges.windowLock && WindowID >= 0 )
+            if (!SteamGauges.windowLock && WindowID >= 0)
             {
                 GUI.DragWindow();
                 // Keep below all others at all times
@@ -499,7 +518,7 @@ namespace SteamGauges
                 GUI.DrawTextureWithTexCoords(new Rect(463 * Scale, 381 * Scale, 98 * Scale, 33 * Scale), Resources.HUD_extras, new Rect(0.4912f, 0.9479f, 0.0957f, 0.0430f));    //Waterline
                 GUI.color = gc;
             }
-             GUI.DrawTextureWithTexCoords(new Rect(504 * Scale, 706 * Scale, 16 * Scale, 19 * Scale), Resources.HUD_extras, new Rect(0.2812f, 0.8958f, 0.0186f, 0.0247f));    //Heading Pointer
+            GUI.DrawTextureWithTexCoords(new Rect(504 * Scale, 706 * Scale, 16 * Scale, 19 * Scale), Resources.HUD_extras, new Rect(0.2812f, 0.8958f, 0.0186f, 0.0247f));    //Heading Pointer
             //G meter only drawn outiside "normal" limits, but otherwise gets drawn all the time
             if (full && v.geeForce > _minGs)
             {
@@ -512,7 +531,7 @@ namespace SteamGauges
             if (full && (drawOrbital) && (v.altitude > 10000) && (v.orbit.ApA > 20000))    //Only display orbital info once we're on our way
             {
                 //Draw static labels
-                GUI.DrawTextureWithTexCoords(new Rect(0f, 0f, 80f*Scale, 275f*Scale), Resources.HUD_extras, new Rect(0f, 0.6419f, 0.07813f, 0.3581f));
+                GUI.DrawTextureWithTexCoords(new Rect(0f, 0f, 80f * Scale, 275f * Scale), Resources.HUD_extras, new Rect(0f, 0.6419f, 0.07813f, 0.3581f));
                 //Apoapsis
                 double val = v.orbit.ApA;
                 if (v.orbit.eccentricity > 1.0) val = 0;
@@ -520,7 +539,7 @@ namespace SteamGauges
                 drawTime(165, 150, v.orbit.timeToAp);
                 //Periapsis, time
                 val = v.orbit.PeA;
-                if (!home.orbitGauge.showNegativePe && val < 0) val = 0;                
+                if (!home.orbitGauge.showNegativePe && val < 0) val = 0;
                 drawDigits(165, 100, val, true, true, true); //Periapsis
                 drawTime(165, 205, v.orbit.timeToPe);   //Time to Pe                
                 //Inclination
@@ -530,7 +549,7 @@ namespace SteamGauges
             if (full && drawThrottle && FlightInputHandler.state.mainThrottle > 0)
             {
                 //Draw static scale
-                GUI.DrawTextureWithTexCoords(new Rect(932f*Scale, 354f*Scale, 92f*Scale, 370f*Scale), Resources.HUD_extras, new Rect(0.9102f, 0.0443f, 0.0898f, 0.4818f));
+                GUI.DrawTextureWithTexCoords(new Rect(932f * Scale, 354f * Scale, 92f * Scale, 370f * Scale), Resources.HUD_extras, new Rect(0.9102f, 0.0443f, 0.0898f, 0.4818f));
                 float vert = (float)FlightInputHandler.state.mainThrottle * 100 * 3.24f; //Throttle *3.24
                 vert = 690 - vert;  //Move up from bottom of scale
                 //Throttle arrow
@@ -692,7 +711,7 @@ namespace SteamGauges
             }
 
             //Draw SAS heading lock orientation when mouse control is engaged
-           if (v.ActionGroups[KSPActionGroup.SAS] && mouseSAS != null)
+            if (v.ActionGroups[KSPActionGroup.SAS] && mouseSAS != null)
                 DrawSASHeading(v);
 
             //Which velocity vector are we interested in?
@@ -767,7 +786,7 @@ namespace SteamGauges
             //Warning Info
             if (full && drawWarnings)
             {
-                if (SteamShip.ElecMax >0 && SteamShip.ChargePercent < 0.1)
+                if (SteamShip.ElecMax > 0 && SteamShip.ChargePercent < 0.1)
                 {
                     GUI.DrawTextureWithTexCoords(new Rect(860f * Scale, 170f * Scale, 154f * Scale, 17f * Scale), Resources.HUD_extras, new Rect(0.7041f, 0.5924f, 0.1504f, 0.0221f));
                 }
@@ -797,7 +816,7 @@ namespace SteamGauges
             //Display "Orbital" for orbital mode - upper right
             if (SteamShip.InOrbit && orbitalMode)
             {
-                GUI.DrawTextureWithTexCoords(new Rect(920f*Scale, 10f*Scale, 98f*Scale, 24f*Scale), Resources.HUD_extras, new Rect(0.8984f, 0.9558f, 0.0957f, 0.0313f));
+                GUI.DrawTextureWithTexCoords(new Rect(920f * Scale, 10f * Scale, 98f * Scale, 24f * Scale), Resources.HUD_extras, new Rect(0.8984f, 0.9558f, 0.0957f, 0.0313f));
             }
 
         }
@@ -843,7 +862,7 @@ namespace SteamGauges
 
         private void DrawSASHeading(Vessel vessel)
         {
-            
+
             //var SAS = vessel.vesselSAS;
             var SAS = vessel.Autopilot.SAS;
             if (SAS == null)
@@ -938,14 +957,14 @@ namespace SteamGauges
                 }
             }
             Quaternion vesselRot = Quaternion.Inverse(ball.relativeGymbal);
-            float pitch = (vesselRot.eulerAngles.x > 180) ? (360 - vesselRot.eulerAngles.x) : -vesselRot.eulerAngles.x; 
+            float pitch = (vesselRot.eulerAngles.x > 180) ? (360 - vesselRot.eulerAngles.x) : -vesselRot.eulerAngles.x;
             float roll = (vesselRot.eulerAngles.z > 180) ? (360 - vesselRot.eulerAngles.z) : -vesselRot.eulerAngles.z;
             float yaw = vesselRot.eulerAngles.y;    //Heading
 
             //Display relative pitch in orbital mode
             if (SteamShip.InOrbit && orbitalMode)
             {
-                pitch = -1*SteamShip.AngleAroundNormal(v.GetObtVelocity(), v.ReferenceTransform.up, v.ReferenceTransform.right);
+                pitch = -1 * SteamShip.AngleAroundNormal(v.GetObtVelocity(), v.ReferenceTransform.up, v.ReferenceTransform.right);
                 if (pitch > 90)
                 {
                     pitch -= 90f;
@@ -1008,7 +1027,7 @@ namespace SteamGauges
                     float polar_pitch = (polarRot.eulerAngles.x + 180f) % 360f - 180f;
                     //print("Polar Pitch: " + Math.Round(polar_pitch));
                     float polar_roll = polarRot.eulerAngles.z;
-                    
+
                     mat = Matrix4x4.Scale(
                         new Vector3(1 / 900f, 1 / 900f, 1.0f)
                     ) * Matrix4x4.TRS(
@@ -1097,7 +1116,7 @@ namespace SteamGauges
                 float relHeading = SteamShip.AngleAroundNormal(FlightGlobals.ActiveVessel.GetObtVelocity(), v.ReferenceTransform.up, v.ReferenceTransform.forward);
                 //float relOther = SteamShip.AngleAroundNormal(FlightGlobals.ActiveVessel.GetObtVelocity(), self.up, self.right);
                 relHeading = (relHeading + 540f) % 360f - 180f; //This converts from 0-365 to +/- 180, except I think it already is
-                GUI.DrawTextureWithTexCoords(new Rect(261 * Scale, 718 * Scale, 500 * Scale, 50 * Scale), Resources.HUD_compass, new Rect(0.42855f+(relHeading * -0.00238f), 0f, 0.1429f, 0.4545f));
+                GUI.DrawTextureWithTexCoords(new Rect(261 * Scale, 718 * Scale, 500 * Scale, 50 * Scale), Resources.HUD_compass, new Rect(0.42855f + (relHeading * -0.00238f), 0f, 0.1429f, 0.4545f));
             }
             else
             {
@@ -1124,44 +1143,44 @@ namespace SteamGauges
         //Draws the airspeed tape, current airspeed, and ground speed to the HUD
         private void drawAirspeedTape(Vessel v)
         {
-           //double mach, tas, easCoeff;
-           //AirGauge.getAirspeedInfo(v, out mach, out tas, out easCoeff);
-           double mach = SteamShip.Mach;
-           double tas = SteamShip.TAS;
-           double easCoeff= SteamShip.EASCoef;
-           float terminal = AirGauge.getTerm(v);
-           
-           //Auto switching between surface and orbital velocities
-           double vel = 0;
-           if (SteamShip.InOrbit)
-               vel = v.obt_velocity.magnitude; //Orbital speeds
-           else
-           {
-               vel = tas;
-               if (useEAS)
-               {
-                   vel *= easCoeff;
-                   terminal *= (float)easCoeff;
-               }
-               GUI.DrawTextureWithTexCoords(new Rect(300*Scale,615*Scale,38*Scale,21*Scale), Resources.HUD_extras, new Rect(0.3809f, 0.8971f, 0.0371f, 0.0273f));  //GS static text
-               drawDigits(295, 610, v.horizontalSrfSpeed, false, false, true);  //Ground speed doesn't matter IN SPAAAAACE!
-           }
-           //Draw Mach number, if relevant
-           if (v.mainBody.atmosphere && v.altitude < v.mainBody.atmosphereDepth)
-           {
-               if (mach > _minMach)
-               {
-                   drawDigits2x2(310, 640, mach, true);
-                   GUI.DrawTextureWithTexCoords(new Rect(315 * Scale, 640 * Scale, 20 * Scale, 30 * Scale), Resources.HUD_chars, new Rect(0f, 0.4f, 1f, 0.2f)); //Draw the 'M'
-               }
-           }
+            //double mach, tas, easCoeff;
+            //AirGauge.getAirspeedInfo(v, out mach, out tas, out easCoeff);
+            double mach = SteamShip.Mach;
+            double tas = SteamShip.TAS;
+            double easCoeff = SteamShip.EASCoef;
+            float terminal = AirGauge.getTerm(v);
+
+            //Auto switching between surface and orbital velocities
+            double vel = 0;
+            if (SteamShip.InOrbit)
+                vel = v.obt_velocity.magnitude; //Orbital speeds
+            else
+            {
+                vel = tas;
+                if (useEAS)
+                {
+                    vel *= easCoeff;
+                    terminal *= (float)easCoeff;
+                }
+                GUI.DrawTextureWithTexCoords(new Rect(300 * Scale, 615 * Scale, 38 * Scale, 21 * Scale), Resources.HUD_extras, new Rect(0.3809f, 0.8971f, 0.0371f, 0.0273f));  //GS static text
+                drawDigits(295, 610, v.horizontalSrfSpeed, false, false, true);  //Ground speed doesn't matter IN SPAAAAACE!
+            }
+            //Draw Mach number, if relevant
+            if (v.mainBody.atmosphere && v.altitude < v.mainBody.atmosphereDepth)
+            {
+                if (mach > _minMach)
+                {
+                    drawDigits2x2(310, 640, mach, true);
+                    GUI.DrawTextureWithTexCoords(new Rect(315 * Scale, 640 * Scale, 20 * Scale, 30 * Scale), Resources.HUD_chars, new Rect(0f, 0.4f, 1f, 0.2f)); //Draw the 'M'
+                }
+            }
             float offset = 0;
             if (vel < 200)
             {
                 if (terminal < 200) //display Vt down to bottom of the ladder
                 {
-                    float vert = (float) (terminal-vel);
-                    vert = 275f + (vert*13.7f);  //distance from top
+                    float vert = (float)(terminal - vel);
+                    vert = 275f + (vert * 13.7f);  //distance from top
                     GUI.DrawTextureWithTexCoords(new Rect(257f * Scale, vert * Scale, 43f * Scale, 19f * Scale), Resources.HUD_extras, new Rect(0.6279f, 0.8646f, 0.0420f, 0.0247f));
                 }
                 else if (terminal < 300)    //Scale change
@@ -1174,9 +1193,9 @@ namespace SteamGauges
                     }
                 }
                 //13.7 pix/m/s, start at 0, displaying 0.16722%
-                offset = (float) ((200-vel) * 13.7);      //Start this many pixels from the top
+                offset = (float)((200 - vel) * 13.7);      //Start this many pixels from the top
                 offset = offset / 3289;             //Convert to a percentage of the texture
-                GUI.DrawTextureWithTexCoords(new Rect(182*Scale, 59*Scale, 150*Scale, 550*Scale), Resources.HUD_speed_tape1, new Rect(0f, offset, 1f, 0.167f));   //0.16722
+                GUI.DrawTextureWithTexCoords(new Rect(182 * Scale, 59 * Scale, 150 * Scale, 550 * Scale), Resources.HUD_speed_tape1, new Rect(0f, offset, 1f, 0.167f));   //0.16722
             }
             else if (vel < 1000)
             {
@@ -1202,15 +1221,15 @@ namespace SteamGauges
                 else if (terminal < 1200)
                 {
                     float vert = (float)(terminal - vel);
-                    if (Math.Abs(vert)<200)
+                    if (Math.Abs(vert) < 200)
                     {
                         vert = 275f + (vert * 1.37f);
                         GUI.DrawTextureWithTexCoords(new Rect(257f * Scale, vert * Scale, 43f * Scale, 19f * Scale), Resources.HUD_extras, new Rect(0.6279f, 0.8646f, 0.0420f, 0.0247f));
                     }
                 }
                 //2.74 pix/m/s, start at 200, displaying 0.2%
-                offset = (float)(1000 - vel)/1000;
-                GUI.DrawTextureWithTexCoords(new Rect(182*Scale, 59*Scale, 150*Scale, 550*Scale), Resources.HUD_speed_tape2, new Rect(0f, offset, 1f, 0.2f));
+                offset = (float)(1000 - vel) / 1000;
+                GUI.DrawTextureWithTexCoords(new Rect(182 * Scale, 59 * Scale, 150 * Scale, 550 * Scale), Resources.HUD_speed_tape2, new Rect(0f, offset, 1f, 0.2f));
             }
             else if (vel < 3000)
             {
@@ -1218,11 +1237,11 @@ namespace SteamGauges
                 //Draw terminal velocity marker in previous scale
                 if (terminal < 1000)
                 {
-                   if (Math.Abs(vert) < 100)
-                   {
-                       vert = 275f + (vert * 2.74f);
-                       GUI.DrawTextureWithTexCoords(new Rect(257f * Scale, vert * Scale, 43f * Scale, 19f * Scale), Resources.HUD_extras, new Rect(0.6279f, 0.8646f, 0.0420f, 0.0247f));
-                   }
+                    if (Math.Abs(vert) < 100)
+                    {
+                        vert = 275f + (vert * 2.74f);
+                        GUI.DrawTextureWithTexCoords(new Rect(257f * Scale, vert * Scale, 43f * Scale, 19f * Scale), Resources.HUD_extras, new Rect(0.6279f, 0.8646f, 0.0420f, 0.0247f));
+                    }
                 }   //Draw terminal velocity marker in current scale
                 else if (terminal < 3000)
                 {
@@ -1240,13 +1259,13 @@ namespace SteamGauges
                         GUI.DrawTextureWithTexCoords(new Rect(257f * Scale, vert * Scale, 43f * Scale, 19f * Scale), Resources.HUD_extras, new Rect(0.6279f, 0.8646f, 0.0420f, 0.0247f));
                     }
                 }
-                offset = (float)(1 - (((vel - 600) * 1.37)/3290));
-                GUI.DrawTextureWithTexCoords(new Rect(182*Scale, 59*Scale, 150*Scale, 550*Scale), Resources.HUD_speed_tape3, new Rect(0f, offset, 1f, 0.16722f));
+                offset = (float)(1 - (((vel - 600) * 1.37) / 3290));
+                GUI.DrawTextureWithTexCoords(new Rect(182 * Scale, 59 * Scale, 150 * Scale, 550 * Scale), Resources.HUD_speed_tape3, new Rect(0f, offset, 1f, 0.16722f));
             }
             else if (vel < 10000)
             {
-                offset = 1 - (float)(((vel-1000)*.274)/2475);
-                GUI.DrawTextureWithTexCoords(new Rect(182*Scale, 59*Scale, 150*Scale, 550*Scale), Resources.HUD_speed_tape4, new Rect(0f, offset, 1f, 0.2214f));
+                offset = 1 - (float)(((vel - 1000) * .274) / 2475);
+                GUI.DrawTextureWithTexCoords(new Rect(182 * Scale, 59 * Scale, 150 * Scale, 550 * Scale), Resources.HUD_speed_tape4, new Rect(0f, offset, 1f, 0.2214f));
             }
             else
             {
@@ -1262,16 +1281,16 @@ namespace SteamGauges
                 drawDigits(460, 335, vel, false, false, true);                            //TAS or EAS
                 GUI.color = gc;
             }
-            
+
         }
 
         //Draws the altitude tape, current altitude, VVI, and radar altitude to the HUD
         private void drawAltitudeTape(Vessel v)
         {
-            float alt =(float) v.mainBody.GetAltitude(v.CoM);
+            float alt = (float)v.mainBody.GetAltitude(v.CoM);
             if (alt < 2000)
             {
-                float offset = 1-((2400-alt)*1.37f)/3297;
+                float offset = 1 - ((2400 - alt) * 1.37f) / 3297;
                 GUI.DrawTextureWithTexCoords(new Rect(721 * Scale, 59 * Scale, 150 * Scale, 550 * Scale), Resources.HUD_alt_tape1, new Rect(0f, offset, 1f, 0.1662f));
             }
             else if (alt < 15000)
@@ -1311,7 +1330,7 @@ namespace SteamGauges
             GUI.DrawTextureWithTexCoords(new Rect(890 * Scale, 250 * Scale, 38 * Scale, 264 * Scale), Resources.HUD_extras, new Rect(0.7061f, 0.1120f, 0.0371f, 0.34375f));
             //dynamic vvi box
             bool pos = true;
-            int vs = (int)(v.verticalSpeed+0.5);
+            int vs = (int)(v.verticalSpeed + 0.5);
             if (v.verticalSpeed < 0)
             {
                 vs *= -1;
@@ -1358,7 +1377,7 @@ namespace SteamGauges
             else
             {
                 if (height < 14)
-                    GUI.DrawTextureWithTexCoords(new Rect(893 * Scale, 381 * Scale, 22 * Scale, height * Scale), Resources.HUD_extras, new Rect(0.7441f, 0.2344f, 0.0195f, (height/768f)));  //triangle growing from -0
+                    GUI.DrawTextureWithTexCoords(new Rect(893 * Scale, 381 * Scale, 22 * Scale, height * Scale), Resources.HUD_extras, new Rect(0.7441f, 0.2344f, 0.0195f, (height / 768f)));  //triangle growing from -0
                 else
                 {
                     height -= 14;
@@ -1370,7 +1389,7 @@ namespace SteamGauges
             //Draw radar altimeter, unless in orbit
             if (!SteamShip.InOrbit)
             {
-                GUI.DrawTextureWithTexCoords(new Rect(838*Scale,615*Scale,40*Scale,21*Scale), Resources.HUD_extras, new Rect(0.4355f, 0.8958f, 0.0391f, 0.0273f));  //Static RA
+                GUI.DrawTextureWithTexCoords(new Rect(838 * Scale, 615 * Scale, 40 * Scale, 21 * Scale), Resources.HUD_extras, new Rect(0.4355f, 0.8958f, 0.0391f, 0.0273f));  //Static RA
                 drawDigits(830, 610, SteamShip.RA, false, true, true);
             }
         }
@@ -1382,7 +1401,7 @@ namespace SteamGauges
             if (!useGPWS) return;
             bool warning = false;
             long ra = SteamShip.RA;
-            double vvi = -1*v.verticalSpeed;
+            double vvi = -1 * v.verticalSpeed;
             if (v.Landed)
                 maxAlt = v.altitude;  //Reset max altitude upon landing/takeoff
             else if (ra > 3)
@@ -1410,7 +1429,7 @@ namespace SteamGauges
                         warning = true;
                         //GUILayout.Label("M1B - PULL UP! Trigger: " + Math.Round(trigger));
                         //PULL UP
-                        GUI.DrawTextureWithTexCoords(new Rect(450 * Scale, 285 * Scale, 144 * Scale, 30 * Scale), Resources.HUD_extras, new Rect(0.7012f, 0.9089f, 0.1406f, 0.0391f)); 
+                        GUI.DrawTextureWithTexCoords(new Rect(450 * Scale, 285 * Scale, 144 * Scale, 30 * Scale), Resources.HUD_extras, new Rect(0.7012f, 0.9089f, 0.1406f, 0.0391f));
                     }
                 }
                 //M2: "TERRAIN PULL UP"
@@ -1421,7 +1440,7 @@ namespace SteamGauges
                         warning = true;
                         //GUILayout.Label("M2 - PULL UP! VVI > 30.6");
                         //PULL UP
-                        GUI.DrawTextureWithTexCoords(new Rect(450 * Scale, 285 * Scale, 144 * Scale, 30 * Scale), Resources.HUD_extras, new Rect(0.7012f, 0.9089f, 0.1406f, 0.0391f)); 
+                        GUI.DrawTextureWithTexCoords(new Rect(450 * Scale, 285 * Scale, 144 * Scale, 30 * Scale), Resources.HUD_extras, new Rect(0.7012f, 0.9089f, 0.1406f, 0.0391f));
                     }
                     else
                     {
@@ -1432,7 +1451,7 @@ namespace SteamGauges
                             warning = true;
                             //GUILayout.Label("M2: - PULL UP! Trigger: " + Math.Round(trigger));
                             //PULL UP
-                            GUI.DrawTextureWithTexCoords(new Rect(450 * Scale, 285 * Scale, 144 * Scale, 30 * Scale), Resources.HUD_extras, new Rect(0.7012f, 0.9089f, 0.1406f, 0.0391f)); 
+                            GUI.DrawTextureWithTexCoords(new Rect(450 * Scale, 285 * Scale, 144 * Scale, 30 * Scale), Resources.HUD_extras, new Rect(0.7012f, 0.9089f, 0.1406f, 0.0391f));
                         }
                     }
                 }
@@ -1443,7 +1462,7 @@ namespace SteamGauges
                     warning = true;
                     //GUILayout.Label("M3: DON'T SINK!");
                     //DON'T SINK
-                    GUI.DrawTextureWithTexCoords(new Rect(450 * Scale, 285 * Scale, 205 * Scale, 30 * Scale), Resources.HUD_extras, new Rect(0.7012f, 0.8646f, 0.2002f, 0.0391f)); 
+                    GUI.DrawTextureWithTexCoords(new Rect(450 * Scale, 285 * Scale, 205 * Scale, 30 * Scale), Resources.HUD_extras, new Rect(0.7012f, 0.8646f, 0.2002f, 0.0391f));
                 }
                 else if (!warning)
                 {
@@ -1453,11 +1472,11 @@ namespace SteamGauges
                         warning = true;
                         //GUILayout.Label("M3: DON'T SINK! Trigger: " + Math.Round(trigger));
                         //DON'T SINK
-                        GUI.DrawTextureWithTexCoords(new Rect(450 * Scale, 285 * Scale, 205 * Scale, 30 * Scale), Resources.HUD_extras, new Rect(0.7012f, 0.8646f, 0.2002f, 0.0391f)); 
+                        GUI.DrawTextureWithTexCoords(new Rect(450 * Scale, 285 * Scale, 205 * Scale, 30 * Scale), Resources.HUD_extras, new Rect(0.7012f, 0.8646f, 0.2002f, 0.0391f));
                     }
                 }
                 //M4: "TOO LOW GEAR"
-                if (!warning && (ra < 304.8) && (vvi  > -1))
+                if (!warning && (ra < 304.8) && (vvi > -1))
                 {
                     bool tlg = false;
                     foreach (Part P in v.parts)
@@ -1475,7 +1494,7 @@ namespace SteamGauges
                                         //GUILayout.Label("M4: TOO LOW TERRAIN");
                                         tlg = true;
                                         //TOO LOW TERRAIN
-                                        GUI.DrawTextureWithTexCoords(new Rect(450 * Scale, 285 * Scale, 170 * Scale, 64 * Scale), Resources.HUD_extras, new Rect(0.7012f, 0.7708f, 0.1660f, 0.0833f)); 
+                                        GUI.DrawTextureWithTexCoords(new Rect(450 * Scale, 285 * Scale, 170 * Scale, 64 * Scale), Resources.HUD_extras, new Rect(0.7012f, 0.7708f, 0.1660f, 0.0833f));
                                     }
                                     else if ((ra < 152.4) && (v.srf_velocity.magnitude < 97.7))
                                     {
@@ -1483,7 +1502,7 @@ namespace SteamGauges
                                         tlg = true;
                                         //GUILayout.Label("M4: TOO LOW GEAR");
                                         //TOO LOW GEAR
-                                        GUI.DrawTextureWithTexCoords(new Rect(450 * Scale, 285 * Scale, 170 * Scale, 64 * Scale), Resources.HUD_extras, new Rect(0.7012f, 0.6745f, 0.1660f, 0.0833f)); 
+                                        GUI.DrawTextureWithTexCoords(new Rect(450 * Scale, 285 * Scale, 170 * Scale, 64 * Scale), Resources.HUD_extras, new Rect(0.7012f, 0.6745f, 0.1660f, 0.0833f));
                                     }
                                 }
                             }
@@ -1509,16 +1528,16 @@ namespace SteamGauges
                     float roll = (vesselRot.eulerAngles.z > 180) ? (360 - vesselRot.eulerAngles.z) : -vesselRot.eulerAngles.z;
                     if ((ra < 10) && (roll > 10))
                         //GUILayout.Label("M6: BANK ANGLE");
-                        GUI.DrawTextureWithTexCoords(new Rect(450 * Scale, 285 * Scale, 217 * Scale, 30 * Scale), Resources.HUD_extras, new Rect(0.7012f, 0.6276f, 0.2119f, 0.0391f)); 
+                        GUI.DrawTextureWithTexCoords(new Rect(450 * Scale, 285 * Scale, 217 * Scale, 30 * Scale), Resources.HUD_extras, new Rect(0.7012f, 0.6276f, 0.2119f, 0.0391f));
                     else if (ra < 45)
                     {
                         if (roll > ra * 1.2)
                             //GUILayout.Label("M6: BANK ANGLE");
-                            GUI.DrawTextureWithTexCoords(new Rect(450 * Scale, 285 * Scale, 217 * Scale, 30 * Scale), Resources.HUD_extras, new Rect(0.7012f, 0.6276f, 0.2119f, 0.0391f)); 
+                            GUI.DrawTextureWithTexCoords(new Rect(450 * Scale, 285 * Scale, 217 * Scale, 30 * Scale), Resources.HUD_extras, new Rect(0.7012f, 0.6276f, 0.2119f, 0.0391f));
                     }
                     else if (roll > 40)
                         //GUILayout.Label("M6: BANK ANGLE");
-                        GUI.DrawTextureWithTexCoords(new Rect(450 * Scale, 285 * Scale, 217 * Scale, 30 * Scale), Resources.HUD_extras, new Rect(0.7012f, 0.6276f, 0.2119f, 0.0391f)); 
+                        GUI.DrawTextureWithTexCoords(new Rect(450 * Scale, 285 * Scale, 217 * Scale, 30 * Scale), Resources.HUD_extras, new Rect(0.7012f, 0.6276f, 0.2119f, 0.0391f));
                 }
             }
         }
@@ -1650,7 +1669,8 @@ namespace SteamGauges
             {
                 int x = (int)(ioutput / divisor) % 10;
                 float y = x * 0.091f;
-                if ((i == 1)&&RollOnes) { //Smooth rolling for last digit
+                if ((i == 1) && RollOnes)
+                { //Smooth rolling for last digit
                     y += (output - ioutput) * 0.091f;
                     if (y < 0.0f) y += 0.91f;
                 }
@@ -1661,15 +1681,15 @@ namespace SteamGauges
                 else
                     GUI.DrawTextureWithTexCoords(new Rect((right - (char_width * i)) * Scale, top * Scale, char_width * Scale, char_height * Scale), Resources.HUD_digits, new Rect(0f, y, 1f, 0.091f));
             }
-            
+
             //Draw sign, if present
             if (negative && Magnitude)
             {
-                GUI.DrawTextureWithTexCoords(new Rect((right - (char_width * (first_digit+2))) * Scale, top * Scale, char_width * Scale, char_height * Scale), Resources.HUD_chars, new Rect(0f, 0.6f, 1f, 0.2f));
+                GUI.DrawTextureWithTexCoords(new Rect((right - (char_width * (first_digit + 2))) * Scale, top * Scale, char_width * Scale, char_height * Scale), Resources.HUD_chars, new Rect(0f, 0.6f, 1f, 0.2f));
             }
             if (negative && !Magnitude)
             {
-                GUI.DrawTextureWithTexCoords(new Rect((right - (char_width * (first_digit+1))) * Scale, top * Scale, char_width * Scale, char_height * Scale), Resources.HUD_chars, new Rect(0f, 0.6f, 1f, 0.2f));
+                GUI.DrawTextureWithTexCoords(new Rect((right - (char_width * (first_digit + 1))) * Scale, top * Scale, char_width * Scale, char_height * Scale), Resources.HUD_chars, new Rect(0f, 0.6f, 1f, 0.2f));
             }
         }
 
@@ -1688,7 +1708,7 @@ namespace SteamGauges
             float y = dec * 0.091f;
             if (rolling)
             {
-                y += (val - exact) *9.1f;
+                y += (val - exact) * 9.1f;
                 if (y < 0) y += 0.91f;
             }
             //print("100ths: "+dec+" y: "+y);
@@ -1697,20 +1717,20 @@ namespace SteamGauges
             dec = (int)(val * 10) % 10;
             y = ((float)dec * 0.091f);
             //print("10ths: "+dec+" y: "+y);
-            GUI.DrawTextureWithTexCoords(new Rect((right - (width*2)) * Scale, top * Scale, width * Scale, height * Scale), Resources.HUD_digits, new Rect(0f, y, 1f, 0.091f));
+            GUI.DrawTextureWithTexCoords(new Rect((right - (width * 2)) * Scale, top * Scale, width * Scale, height * Scale), Resources.HUD_digits, new Rect(0f, y, 1f, 0.091f));
             //'.'
-            GUI.DrawTextureWithTexCoords(new Rect((right - (width * 2) - 7) * Scale, (top+18) * Scale, 9 * Scale, 9 * Scale), Resources.HUD_extras, new Rect(0.1982f, 0.4362f, 0.0088f, 0.0177f));
+            GUI.DrawTextureWithTexCoords(new Rect((right - (width * 2) - 7) * Scale, (top + 18) * Scale, 9 * Scale, 9 * Scale), Resources.HUD_extras, new Rect(0.1982f, 0.4362f, 0.0088f, 0.0177f));
             //1s
             dec = (int)val % 10;
             //print("1s: " + dec);
             y = dec * 0.091f;
-            GUI.DrawTextureWithTexCoords(new Rect((right - (width * 3)-6) * Scale, top * Scale, width * Scale, height * Scale), Resources.HUD_digits, new Rect(0f, y, 1f, 0.091f));
+            GUI.DrawTextureWithTexCoords(new Rect((right - (width * 3) - 6) * Scale, top * Scale, width * Scale, height * Scale), Resources.HUD_digits, new Rect(0f, y, 1f, 0.091f));
             //10s
-            dec =(int) (val / 10) % 10;
+            dec = (int)(val / 10) % 10;
             //print("10s: " + dec);
             y = dec * 0.091f;
             if (dec != 0)
-                GUI.DrawTextureWithTexCoords(new Rect((right - (width * 4)-6) * Scale, top * Scale, width * Scale, height * Scale), Resources.HUD_digits, new Rect(0f, y, 1f, 0.091f));
+                GUI.DrawTextureWithTexCoords(new Rect((right - (width * 4) - 6) * Scale, top * Scale, width * Scale, height * Scale), Resources.HUD_digits, new Rect(0f, y, 1f, 0.091f));
         }
 
         //Draws a formatted 3 digit number with 1 decimal place and sign 
@@ -1786,14 +1806,14 @@ namespace SteamGauges
             x = x % 10;
             GUI.DrawTextureWithTexCoords(new Rect((right - (2 * width)) * Scale, top * Scale, width * Scale, height * Scale), Resources.HUD_digits6, new Rect(0f, (float)(x * 0.143), 1f, 0.143f));
             //Draw colon
-            GUI.DrawTextureWithTexCoords(new Rect((right - (2*width)-15) * Scale, (top-4)*Scale, width*Scale, height*Scale), Resources.HUD_chars, new Rect(0f, 0.8f, 1f, 0.2f));
+            GUI.DrawTextureWithTexCoords(new Rect((right - (2 * width) - 15) * Scale, (top - 4) * Scale, width * Scale, height * Scale), Resources.HUD_chars, new Rect(0f, 0.8f, 1f, 0.2f));
             //draw minutes
             x = (int)minutes % 10;
             GUI.DrawTextureWithTexCoords(new Rect((right - (3f * width) - 10) * Scale, top * Scale, width * Scale, height * Scale), Resources.HUD_digits, new Rect(0f, (float)(x * 0.091), 1f, 0.091f));
             x = (int)minutes / 10;
             GUI.DrawTextureWithTexCoords(new Rect((right - (4f * width) - 10) * Scale, top * Scale, width * Scale, height * Scale), Resources.HUD_digits6, new Rect(0f, (float)(x * 0.143), 1f, 0.143f));
             //Draw colon
-            GUI.DrawTextureWithTexCoords(new Rect((right - (4 * width) - 25) * Scale, (top-4) * Scale, width * Scale, height * Scale), Resources.HUD_chars, new Rect(0f, 0.8f, 1f, 0.2f));
+            GUI.DrawTextureWithTexCoords(new Rect((right - (4 * width) - 25) * Scale, (top - 4) * Scale, width * Scale, height * Scale), Resources.HUD_chars, new Rect(0f, 0.8f, 1f, 0.2f));
             //draw hours
             x = (int)hours % 10;
             GUI.DrawTextureWithTexCoords(new Rect((right - (5 * width) - 20) * Scale, top * Scale, width * Scale, height * Scale), Resources.HUD_digits, new Rect(0f, (float)(x * 0.091), 1f, 0.091f));
@@ -1834,27 +1854,26 @@ namespace SteamGauges
             cGreen = config.GetValue<int>("centerGreen", 255 - Green);
             cBlue = config.GetValue<int>("centerBlue", 255 - Blue);
             color_center = config.GetValue<bool>("centerColor", false);
-            _minMach =(float) config.GetValue<double>("HUDminMach", 0.5);
-            _minGs = (float) config.GetValue<double>("HUDminG", 2);
+            _minMach = (float)config.GetValue<double>("HUDminMach", 0.5);
+            _minGs = (float)config.GetValue<double>("HUDminG", 2);
             required_technology = config.GetValue<string>("HUDtechnology", "electronics");
-            String s = config.GetValue<string>("HUDkey", "LeftAlt H");
+
             try
             {
-                s = s.Trim();
-                String[] keys = s.Split(' ');
-                hudKeys = new KeyCode[keys.Length];
-                for (int i = 0; i < hudKeys.Length;i++ )
-                    hudKeys[i] = (KeyCode)Enum.Parse(typeof(KeyCode), keys[i]);   //Parse the string the the matching key
+                hudKey = new KeyCodeExtended(config.GetValue("hudKey", "H"));
+                hudModifierKey = new KeyCodeExtended();
+                hudModifierKey.code = (KeyCode)config.GetValue("hudModifierKey", 0);
+                hudShiftKey = new KeyCodeExtended();
+                hudShiftKey.code = (KeyCode) config.GetValue("hudShiftKey", 0);
             }
             catch
             {
                 Log.Error("Couldn't read keys from config.");
-                //Use default
-                hudKeys = new KeyCode[2];
-                hudKeys[0] = KeyCode.LeftAlt;
-                hudKeys[1] = KeyCode.H; 
+                hudKey = new KeyCodeExtended("H");
+                hudShiftKey = new KeyCodeExtended(KeyCode.None);
+                hudModifierKey = GameSettings.MODIFIER_KEY.primary;
             }
-            
+
         }
 
         //This saves the configuration values from the config file
@@ -1889,10 +1908,9 @@ namespace SteamGauges
             config.SetValue("centerBlue", cBlue);
             config.SetValue("centerColor", color_center);
             config.SetValue("HUDtechnology", required_technology);
-            String key = "";
-            foreach (KeyCode code in hudKeys)
-                key = key + code.ToString()+" ";
-            config.SetValue("HUDkey", key);
-            }
+            config.SetValue("hudKey", hudKey.code.ToString());
+            config.SetValue("hudShiftKey", (int)hudShiftKey.code);
+            config.SetValue("hudModifierKey", (int)hudModifierKey.code);
+        }
     }
 }

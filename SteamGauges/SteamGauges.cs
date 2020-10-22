@@ -18,6 +18,7 @@ using UnityEngine;                  //KSP is built on the Unity engine, so, we u
 using KSP.IO;                       //KSP specific IO handling
 using KSP.UI.Screens;
 using System;
+using System.Collections.Generic;
 using ToolbarControl_NS;
 using KSP_Log;
 using ClickThroughFix;
@@ -517,7 +518,6 @@ namespace SteamGauges
             //Draw the main window, if not minimized
             if (!isMinimized)
             {
-                Log.Info("OnDraw, isMinimized is " + isMinimized);
                 //Check window off screen
                 if ((_windowPosition.xMin + _windowPosition.width) < 20) _windowPosition.xMin = 20 - _windowPosition.width; //left limit
                 if (_windowPosition.yMin + _windowPosition.height < 20) _windowPosition.yMin = 20 - _windowPosition.height; //top limit
@@ -544,10 +544,16 @@ namespace SteamGauges
             GUI.color = tmpColor;
         }
 
+        bool waitingForKey = false;
+        bool modifierKeyPressed = false;
+        bool rshiftKeyPressed = false, lshiftKeyPressed = false;
+        KeyCodeExtended hudKey, hudModifierKey, hudShiftKey;
+        List<KeyCode> codes = null;
+
+
         //Draw the advanced settings window
         private void OnAdvanced(int WindowID)
         {
-            Log.Info("OnAdvanced, WindowID: " + WindowID);
             //Radar Altimeter Settings
             GUILayout.Label("Radar Altimeter Settings", _boldStyle, GUILayout.Width(500));  //Hopefully set the width of the window betterer
             GUILayout.BeginHorizontal();
@@ -777,24 +783,69 @@ namespace SteamGauges
             GUILayout.FlexibleSpace();
             GUILayout.Label("HUD Key:");
             String key = "";
-            foreach (KeyCode code in hudGauge.hudKeys)
-                key = key + code.ToString() + " ";
+
+            if (hudGauge.hudModifierKey.code != KeyCode.None)
+                key = key + hudGauge.hudModifierKey.code.ToString() + " ";
+            if (hudGauge.hudShiftKey.code != KeyCode.None)
+                key = key + hudGauge.hudShiftKey.code.ToString() + " ";
+            key = key + hudGauge.hudKey.code.ToString() + " ";
             GUILayout.TextArea(key);
-            /*if (GUILayout.Button("Assign Key", _buttonStyle, GUILayout.Width(100)))
+
+
+            if (!waitingForKey)
             {
-                //This is terrible right now, you pretty much have to hold down the key, then press the button.
-                if (Input.anyKey)
+                if (GUILayout.Button("Assign Key", _buttonStyle, GUILayout.Width(100)))
+                    waitingForKey = true;
+
+                hudKey = hudGauge.hudKey;
+                hudModifierKey = hudGauge.hudModifierKey;
+                hudShiftKey = hudGauge.hudShiftKey;
+                modifierKeyPressed = false;
+
+                if (codes == null)
                 {
-                    key = Input.inputString;
-                    if (Event.current.shift)
-                        key = key + " shift";
-                    if (Event.current.alt)
-                        key = key + " alt";
-                    if (Event.current.control)
-                        key = key + " ctrl";
-                    Log.Info("Found keys: " + key);
+                    codes = new List<KeyCode>();
+
+                    for (KeyCode a = KeyCode.A; a < KeyCode.Z; a++)
+                        codes.Add(a);
+
+                    for (KeyCode a = KeyCode.RightShift; a < KeyCode.LeftAlt; a++)
+                        codes.Add(a);
                 }
-            } */
+            }
+            else
+            {
+                if (Event.current.isKey)
+                {
+                    if (ExtendedInput.DetectKeyDown(codes, out KeyCodeExtended extendedkey))
+                    {
+                        if (extendedkey.code == KeyCode.Escape)
+                        {
+                            waitingForKey = false;
+                        }
+                        else
+                        {
+                            modifierKeyPressed = ExtendedInput.GetKey(GameSettings.MODIFIER_KEY.primary);
+                            lshiftKeyPressed = ExtendedInput.GetKey(new KeyCodeExtended(KeyCode.LeftShift));
+                            rshiftKeyPressed = ExtendedInput.GetKey(new KeyCodeExtended(KeyCode.RightShift));
+
+                            hudGauge.hudKey = extendedkey;
+                            hudGauge.hudModifierKey.code = KeyCode.None;
+                            hudGauge.hudShiftKey.code = KeyCode.None;
+                            if (modifierKeyPressed)
+                                hudGauge.hudModifierKey = GameSettings.MODIFIER_KEY.primary;
+                            if (lshiftKeyPressed)
+                                hudGauge.hudShiftKey = new KeyCodeExtended(KeyCode.LeftShift);
+                            if (rshiftKeyPressed)
+                                hudGauge.hudShiftKey = new KeyCodeExtended(KeyCode.RightShift);
+
+                            Log.Info("extendedkey: " + extendedkey.code.ToString() + ", hudGauge.hudModifierKey: " + hudGauge.hudModifierKey + ", hudGauge.hudShiftKey: " + hudGauge.hudShiftKey);
+                        }
+
+                        waitingForKey = false;
+                    }
+                }
+            }
             GUILayout.EndHorizontal();
             //Scale
             GUILayout.BeginHorizontal();
@@ -837,9 +888,9 @@ namespace SteamGauges
             }
             if (Event.current.type == EventType.Repaint || Event.current.isMouse)
             {
-                    preDrawCallbacks();
+                preDrawCallbacks();
             }
-                postDrawCallbacks();
+            postDrawCallbacks();
         }
 
         //This toggles the visibility of the extra toolbar buttons, based on the user selected mode.

@@ -1,5 +1,8 @@
 Changelog
 
+1.8.1
+	Added the ability to change the hotkey for the HUD.  The default is still alt-H
+
 1.8.0.1
 	Removed extra .version file
 
