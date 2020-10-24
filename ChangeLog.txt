@@ -1,5 +1,9 @@
 Changelog
 
+1.8.2
+	Fixed gauges not showing after hiding and unhiding the UI
+	Added option to keep gauges on screen while hiding the UI
+
 1.8.1
 	Added the ability to change the hotkey for the HUD.  The default is still alt-H
 

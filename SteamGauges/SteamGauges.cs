@@ -40,12 +40,16 @@ namespace SteamGauges
         private bool _hasInitStyles = false;                                        //Only initialize once
         private static bool isMinimized = true;                                     //Is the window currently minimized?
         private static bool advMinimized = true;                                    //Advanced settings window
-        public static bool isShowUi = true;                                         //Show GUI
+        public static bool isShowUi = true;
+        public static bool isShowWin = true;
+        //Show GUI
         public static bool isUIHidden = false;
         public static bool isGamePaused = false;
         private bool _allToolbar;                                                   //If true, replaces the main window with a bunch of toolbar buttons
         public static bool windowLock;                                              //Are the windows locked in position, or dragable?
         private static Rect _advwindowPosition;                                     //Advanced settings window
+        public static bool showWhenUIHidden { get; private set; }
+
         public static bool drawBezels { get; private set; }                         //Draw the square bezels around gauges?
         public static float Alpha { get; private set; }                               //The global alpha blend value for all windows
         public static Color Red = new Color(1, 0, 0);                               //Red, yo!
@@ -356,9 +360,23 @@ namespace SteamGauges
             SaveMe();
         }
 
-        private void OnShowUI(bool isShow) { isUIHidden = !isShow; isShowUi = isUIHidden && !isGamePaused; }
+        private void OnShowUI(bool isShow) 
+        {
+            isUIHidden = !isShow; 
+            isShowUi = (!isUIHidden || showWhenUIHidden) && !isGamePaused; 
+            isShowWin = !isUIHidden  && !isGamePaused;
 
-        private void OnPause(bool isShow) { isUIHidden = false; isGamePaused = isShow; isShowUi = !isUIHidden && !isGamePaused; }
+            //Log.Info("OnShowUI, isShow: " + isShow + ", isShowUi: " + isShowUi + ", isUIHidden: " + isUIHidden + ", showWhenUIHidden: " + showWhenUIHidden + ", isGamePaused: " + isGamePaused);
+             
+        }
+
+        private void OnPause(bool isShow) 
+        {
+            isUIHidden = false; 
+            isGamePaused = isShow;
+            isShowWin = 
+                isShowUi = !isUIHidden && !isGamePaused; 
+        }
 
         //Clean up buttons
         public void OnDestroy()
@@ -406,6 +424,9 @@ namespace SteamGauges
             config.SetValue("AdvancedMinimized", advMinimized);
             config.SetValue("AdvancedPosition", _advwindowPosition);
             config.SetValue("DrawBezels", drawBezels);
+            config.SetValue("ShowWhenUIHidden",  showWhenUIHidden);
+
+
             config.SetValue("WindowLock", windowLock);
             config.SetValue("AllToolbar", _allToolbar);
             config.SetValue("EnableAirGauge", enableAirGauge);
@@ -448,6 +469,7 @@ namespace SteamGauges
             _advwindowPosition.width = 10f; //Make it small, so it can be resised larger
             _advwindowPosition.height = 10f;
             drawBezels = config.GetValue<bool>("DrawBezels", true);
+            showWhenUIHidden = config.GetValue<bool>("ShowWhenUIHidden", true);
             windowLock = config.GetValue<bool>("WindowLock", false);
             _allToolbar = config.GetValue<bool>("AllToolbar", false);
             enableAirGauge = config.GetValue<bool>("EnableAirGauge", true);
@@ -516,7 +538,7 @@ namespace SteamGauges
             GUI.color = new Color(1, 1, 1, Alpha);
 
             //Draw the main window, if not minimized
-            if (!isMinimized)
+            if (!isMinimized && isShowWin)
             {
                 //Check window off screen
                 if ((_windowPosition.xMin + _windowPosition.width) < 20) _windowPosition.xMin = 20 - _windowPosition.width; //left limit
@@ -529,7 +551,7 @@ namespace SteamGauges
                 _windowPosition = ClickThruBlocker.GUILayoutWindow(SpaceTuxUtility.WindowHelper.NextWindowId(title), _windowPosition, OnWindow, title, _windowStyle);
             }
             //Draw the advanced window, if not minimized
-            if (!advMinimized)
+            if (!advMinimized && isShowWin)
             {
                 Log.Info("OnDraw, advMinimized is " + advMinimized);
                 //Check window off screen
@@ -867,6 +889,7 @@ namespace SteamGauges
                 GUILayout.BeginHorizontal();
                 drawBezels = GUILayout.Toggle(drawBezels, "Draw Large Bezels", _toggleStyle, GUILayout.Width(250));
                 windowLock = GUILayout.Toggle(windowLock, "Lock Gauge Posistions", _toggleStyle, GUILayout.Width(250));
+                showWhenUIHidden = GUILayout.Toggle(showWhenUIHidden, "Show Gauges when UI is hidden", _toggleStyle, GUILayout.Width(250));
                 GUILayout.EndHorizontal();
             }
             GUILayout.BeginHorizontal();
@@ -1012,6 +1035,7 @@ namespace SteamGauges
             GUILayout.EndHorizontal();
             drawBezels = GUILayout.Toggle(drawBezels, "Draw Large Bezels", _toggleStyle);
             windowLock = GUILayout.Toggle(windowLock, "Lock Gauge Posistions", _toggleStyle);
+            showWhenUIHidden = GUILayout.Toggle(showWhenUIHidden, "Show Gauges when UI is hidden", _toggleStyle);
             GUILayout.BeginHorizontal();
             if (WindowToggle(!advMinimized, "Advanced Settings", 130))
             {
