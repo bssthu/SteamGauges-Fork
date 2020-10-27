@@ -84,7 +84,7 @@ namespace SteamGauges
 
         private static ToolbarControl[] buttons = new ToolbarControl[12];
         private static Gauge[] gauges = new Gauge[12];
-        private static string[] ButtonNames = new string[12] {
+        internal static string[] ButtonNames = new string[12] {
             "",
             "Air Gauge",
             "Electrical Gauge",

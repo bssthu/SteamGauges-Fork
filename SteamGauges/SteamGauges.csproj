@@ -76,6 +76,7 @@
     <Compile Include="SteamGauges.cs" />
     <Compile Include="SteamShip.cs" />
     <Compile Include="TempGauge.cs" />
+    <Compile Include="ToolbarRegistration.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="AssemblyVersion.tt">
