@@ -1,5 +1,8 @@
 Changelog
 
+1.8.3.1
+	Removed extra dll from plugin directory 
+
 1.8.3
 	Added in accidently deleted ToolbarRegistration.cs
 	Updated registration for the individual gauges to bypass a bug in the ToolbarController
