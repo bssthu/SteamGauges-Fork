@@ -1,5 +1,12 @@
 Changelog
 
+1.8.3.3
+	Renamed DLL cor CKAN compatiblility
+
+1.8.3.2
+	Added Assemblyfileversion
+	Updated verson for 1.12
+
 1.8.3.1
 	Removed extra dll from plugin directory 
 
