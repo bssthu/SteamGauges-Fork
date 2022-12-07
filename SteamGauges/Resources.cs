@@ -56,7 +56,7 @@ namespace SteamGauges
         public static Texture2D HUD_extras = new Texture2D(1024, 768);
 
         //Actually load the textures from files
-        const string DIR = "GameData/SteamGauges/PluginData/SteamGauges/";
+        static string DIR { get { return KSPUtil.ApplicationRootPath + "GameData/SteamGauges/PluginData/SteamGauges/"; } }
         static internal Log Log = new Log("SteamGauges.Resources", Log.LEVEL.INFO);
 
         static internal void LoadImage(ref Texture2D tex, string name)

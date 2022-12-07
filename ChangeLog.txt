@@ -1,7 +1,10 @@
 Changelog
 
+1.8.3.4
+	Fixed path for loading files (broken by new launcher)
+
 1.8.3.3
-	Renamed DLL cor CKAN compatiblility
+	Renamed DLL for CKAN compatiblility
 
 1.8.3.2
 	Added Assemblyfileversion
