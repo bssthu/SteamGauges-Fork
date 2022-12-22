@@ -9,6 +9,7 @@ using System.Reflection;
 using System.Linq;
 using UnityEngine;
 using ModuleWheels;
+using KSP_Log;
 
 namespace SteamGauges
 {
@@ -114,6 +115,14 @@ namespace SteamGauges
         public static double EASCoef { get { return _eas; } }
         public static double NavDist { get { return _nav_dist; } }
         public static double NavHeading { get { return _nav_heading; } }
+
+#if DEBUG
+        static Log Log = new Log("SteamGauges." + "SteamShip", Log.LEVEL.INFO);
+#else
+        static Log Log = new Log("SteamGauges." + "SteamShip", Log.LEVEL.ERROR);
+#endif
+
+
         public static int NavWaypointId   //allows remote increment and decrement, but constrains to number of waypoints
         {
             set
@@ -205,7 +214,7 @@ namespace SteamGauges
             //float lt = lastTime;
             //lastTime = now;
             double dt = TimeWarp.fixedDeltaTime;
-            //Debug.Log("Starting simulation at " + Math.Round(now, 3));
+            //Log.Info("Starting simulation at " + Math.Round(now, 3));
             isReadable = false;
             //Reset some stuff
             ship = FlightGlobals.ActiveVessel;
@@ -236,21 +245,21 @@ namespace SteamGauges
             
             
 //            int cur_stage = ship.currentStage;
-//Debug.Log("##########################");
-//Debug.Log("Current Stage: "+cur_stage);
+//Log.Info("##########################");
+//Log.Info("Current Stage: "+cur_stage);
             //Part loop - look at all the parts and modules for stuff.
             foreach (Part P in ship.parts)
             {
-                /*Debug.Log("-------------------------------");
-                Debug.Log(P.name);
-                Debug.Log("inStageIndex: " + P.inStageIndex);
-                Debug.Log("inv Stage: " + P.inverseStage);
-                Debug.Log("Manual Stage Offset: " + P.manualStageOffset);
-                Debug.Log("Computed Stage: " + (P.inverseStage + P.manualStageOffset));
-                Debug.Log("Original Stage: " + P.originalStage);
-                //Debug.Log("Stage After: " + P.stageAfter);
-                //Debug.Log("Stage Before: " + P.stageBefore);
-                Debug.Log("Stage Offset: " + P.stageOffset); */
+                /*Log.Info("-------------------------------");
+                Log.Info(P.name);
+                Log.Info("inStageIndex: " + P.inStageIndex);
+                Log.Info("inv Stage: " + P.inverseStage);
+                Log.Info("Manual Stage Offset: " + P.manualStageOffset);
+                Log.Info("Computed Stage: " + (P.inverseStage + P.manualStageOffset));
+                Log.Info("Original Stage: " + P.originalStage);
+                //Log.Info("Stage After: " + P.stageAfter);
+                //Log.Info("Stage Before: " + P.stageBefore);
+                Log.Info("Stage Offset: " + P.stageOffset); */
                 
                 //Temperature
                 //First, look at internal temps
@@ -268,7 +277,7 @@ namespace SteamGauges
                     _max_temp_actual = P.skinTemperature;
                 }
 
-                //if (P.temperature/P.maxTemp > .5) Debug.Log(P.partInfo.title + " Temp: " + (int)P.temperature + "⁰/" + (int)P.maxTemp + "⁰");
+                //if (P.temperature/P.maxTemp > .5) Log.Info(P.partInfo.title + " Temp: " + (int)P.temperature + "⁰/" + (int)P.maxTemp + "⁰");
                 
 
 
@@ -387,7 +396,7 @@ namespace SteamGauges
             _isp = _max_thrust / _isp;    //Complete the average isp
 
             if (_engineaccel == 0) _engineaccel = 2;    //Default in case the engines don't define it
-            //Debug.Log("Engine Acceleration: " + Math.Round(_engineaccel, 2));
+            //Log.Info("Engine Acceleration: " + Math.Round(_engineaccel, 2));
 
             //Electric charge rate
             if (now - lastTime > 0.1)
@@ -409,17 +418,17 @@ namespace SteamGauges
             {
                 ManeuverNode myNode = FlightGlobals.ActiveVessel.patchedConicSolver.maneuverNodes.ToArray()[0];
                 double deltaVRem = myNode.GetBurnVector(ship.orbit).magnitude;   //Remaining ΔV in the burn, per maneuver node
-                //Debug.Log("dV: " + Math.Round(deltaVRem, 1));
-                //Debug.Log("Mass: " + Math.Round(_mass, 1) + " ISP: " + Math.Round(_isp, 1));
+                //Log.Info("dV: " + Math.Round(deltaVRem, 1));
+                //Log.Info("Mass: " + Math.Round(_mass, 1) + " ISP: " + Math.Round(_isp, 1));
                 _final_mass = _mass / Math.Pow(Math.E, (deltaVRem / (_isp * 9.82)));                   //Mass after burn   Changed from 9.821
-                //Debug.Log("Final Mass: " + Math.Round(_final_mass, 1));
+                //Log.Info("Final Mass: " + Math.Round(_final_mass, 1));
                 _mass_rate = _max_thrust / (_isp * 9.82);                                                //Mass flow rate
-                //Debug.Log("Mass Rate: " + Math.Round(_mass_rate, 3));
-                //Debug.Log("Burn Mass: " + Math.Round(_mass - _final_mass, 1));
+                //Log.Info("Mass Rate: " + Math.Round(_mass_rate, 3));
+                //Log.Info("Burn Mass: " + Math.Round(_mass - _final_mass, 1));
                 _burn_time = (_mass - _final_mass);// / _mass_rate;                                         //Time it takes for this burn
-                //Debug.Log("Burn Mass: " + _burn_time);
+                //Log.Info("Burn Mass: " + _burn_time);
                 _burn_time = _burn_time / _mass_rate;
-                //Debug.Log("Burn Time: " + _burn_time);
+                //Log.Info("Burn Time: " + _burn_time);
                 _burn_time += 2d;
                 //_burn_time += _engineaccel + _enginedecel;                                             //Factor in slow throttles
             }
@@ -444,12 +453,12 @@ namespace SteamGauges
             rotationVesselSurface = Quaternion.Inverse(Quaternion.Euler(90, 0, 0) * Quaternion.Inverse(ship.GetTransform().rotation) * rotationSurface);
             _heading = rotationVesselSurface.eulerAngles.y; */
             _heading = FlightGlobals.ship_heading;
-         //Debug.Log("FlightGlobals Heading: " + FlightGlobals.ship_heading + " MechJeb Heading: " + _heading);   //good
-         //Debug.Log("Ship temp: " + FlightGlobals.ship_temp);    //not useful
-         //Debug.Log("Get dV: " + FlightGlobals.ActiveVessel.GetDeltaV());    //nothing
-         //Debug.Log("Surface Height: " + FlightGlobals.ActiveVessel.GetHeightFromSurface() + " Terrain Height: "+FlightGlobals.ActiveVessel.GetHeightFromTerrain()); //not useful
-         //Debug.Log("GetMass(): " + FlightGlobals.ActiveVessel.GetTotalMass()+" myMass: "+_mass);    //good
-         //Debug.Log("IAS: " + FlightGlobals.ActiveVessel.indicatedAirSpeed + " M: " + FlightGlobals.ActiveVessel.mach);  //good
+         //Log.Info("FlightGlobals Heading: " + FlightGlobals.ship_heading + " MechJeb Heading: " + _heading);   //good
+         //Log.Info("Ship temp: " + FlightGlobals.ship_temp);    //not useful
+         //Log.Info("Get dV: " + FlightGlobals.ActiveVessel.GetDeltaV());    //nothing
+         //Log.Info("Surface Height: " + FlightGlobals.ActiveVessel.GetHeightFromSurface() + " Terrain Height: "+FlightGlobals.ActiveVessel.GetHeightFromTerrain()); //not useful
+         //Log.Info("GetMass(): " + FlightGlobals.ActiveVessel.GetTotalMass()+" myMass: "+_mass);    //good
+         //Log.Info("IAS: " + FlightGlobals.ActiveVessel.indicatedAirSpeed + " M: " + FlightGlobals.ActiveVessel.mach);  //good
             //Waypoint distance code
             //Uses the Spherical Law of Cosines from http://www.movable-type.co.uk/scripts/latlong.html
             NavWaypoint nW = NavWaypoint.fetch; //The active nav waypoint
@@ -675,23 +684,23 @@ namespace SteamGauges
                 double avgG = body.gravParameter / ((body.Radius + ship.terrainAltitude) * (body.Radius + ship.terrainAltitude));
                 avgG += FlightGlobals.getGeeForceAtPosition(ship.CoM).magnitude;
                 avgG /= 2;
-                //Debug.Log("Average G: " + Math.Round(avgG, 2));
+                //Log.Info("Average G: " + Math.Round(avgG, 2));
                 double vdv = Math.Sqrt((2 * avgG * _ra) + (ship.verticalSpeed * ship.verticalSpeed));
-                //Debug.Log("Vertical Delta V: " + Math.Round(vdv, 1));
+                //Log.Info("Vertical Delta V: " + Math.Round(vdv, 1));
                 //Altitude Fraction = (Vertical dv ^2) / (2 * 1000 * Thrust (kN))
                 double altFrac = (vdv * vdv) / (2 * 1000 * _max_thrust);
-                //Debug.Log("Altitude Fraction: " + Math.Round(altFrac, 2));
+                //Log.Info("Altitude Fraction: " + Math.Round(altFrac, 2));
                 //m-avg = (m0 + (m0 / e ^ (dv / (Isp * 9.82)))) / 2
                 double avgMass = (_mass / Math.Pow(Math.E, (vdv / (_isp * 9.82))));
                 avgMass = (_mass + avgMass) / 2;
-                //Debug.Log("Average mass: " + Math.Round(avgMass, 1));
+                //Log.Info("Average mass: " + Math.Round(avgMass, 1));
                 _sa = (long)Math.Round(altFrac * avgMass * 1000);
-                //Debug.Log("Suicide Altitude: " + Math.Round(_sa));
+                //Log.Info("Suicide Altitude: " + Math.Round(_sa));
             }
 
             //Cleanup
             isReadable = true;
-            //Debug.Log("Thread simulation complete at " + Math.Round(Time.time, 3));
+            //Log.Info("Thread simulation complete at " + Math.Round(Time.time, 3));
         }
 
         //Some global methods that multiple plugins need to reference
@@ -735,18 +744,18 @@ namespace SteamGauges
             checkedForFAR = true;
             try
             {
-                if (SteamGauges.debug) Debug.Log("(S)G Initializing FAR interaction...");
+                if (SteamGauges.debug) Log.Info("(S)G Initializing FAR interaction...");
                 var loadedAssembly = AssemblyLoader.loadedAssemblies.FirstOrDefault(a => a.assembly.GetName().Name == "FerramAerospaceResearch");
-                if (SteamGauges.debug) Debug.Log("(SG) FAR Assembly loaded.");
+                if (SteamGauges.debug) Log.Info("(SG) FAR Assembly loaded.");
                 if (loadedAssembly == null) return;
-                if (SteamGauges.debug) Debug.Log("(SG) Loading FAR utilities...");
+                if (SteamGauges.debug) Log.Info("(SG) Loading FAR utilities...");
                 var type = loadedAssembly.assembly.GetTypes().FirstOrDefault(t => t.FullName.Equals("ferram4.FARAeroUtil"));
                 if (type == null) return;
-                if (SteamGauges.debug) Debug.Log("(SG) Loading FAR controls...");
+                if (SteamGauges.debug) Log.Info("(SG) Loading FAR controls...");
                 Type type_api = loadedAssembly.assembly.GetTypes().FirstOrDefault(t => t.FullName.Equals("ferram4.FARAPI"));
                 Type type_cs = loadedAssembly.assembly.GetTypes().FirstOrDefault(t => t.FullName.Equals("ferram4.FARControlSys"));
 
-                if (SteamGauges.debug) Debug.Log("(SG) Loading FAR functions...");
+                if (SteamGauges.debug) Log.Info("(SG) Loading FAR functions...");
                 far_GetMachNumber = (FAR_GetMachNumber)Delegate.CreateDelegate(typeof(FAR_GetMachNumber), type, "GetMachNumber", false, false);
                 far_GetCurrentDensity = (FAR_GetCurrentDensity)Delegate.CreateDelegate(typeof(FAR_GetCurrentDensity), type, "GetCurrentDensity", false, false);
 
@@ -769,11 +778,11 @@ namespace SteamGauges
                         far_GetTermVel = () => (double)tvel.GetValue(null);
                 }
 
-                if (SteamGauges.debug) Debug.Log("(SG) AirGauge: Successfully attached to FAR");
+                if (SteamGauges.debug) Log.Info("(SG) AirGauge: Successfully attached to FAR");
             }
             catch (Exception e)
             {
-                if (SteamGauges.debug) Debug.Log("(SG) AirGauge: Error retrieving FAR method references: " + e);
+                if (SteamGauges.debug) Log.Info("(SG) AirGauge: Error retrieving FAR method references: " + e);
             }
         }
         // These values all depend on the atmospheric properties and require talking to FAR if installed.

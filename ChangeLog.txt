@@ -1,0 +1,44 @@
+Changelog
+
+1.8.3.4
+	Fixed path for loading files (broken by new launcher)
+
+1.8.3.3
+	Renamed DLL for CKAN compatiblility
+
+1.8.3.2
+	Added Assemblyfileversion
+	Updated verson for 1.12
+
+1.8.3.1
+	Removed extra dll from plugin directory 
+
+1.8.3
+	Added in accidently deleted ToolbarRegistration.cs
+	Updated registration for the individual gauges to bypass a bug in the ToolbarController
+
+1.8.2
+	Fixed gauges not showing after hiding and unhiding the UI
+	Added option to keep gauges on screen while hiding the UI
+
+1.8.1
+	Added the ability to change the hotkey for the HUD.  The default is still alt-H
+
+1.8.0.1
+	Removed extra .version file
+
+1.8.0
+	Removed compatibility checker 
+	Converted all buttons to ToolbarController
+		
+	Converted all constant window ids to using  SpaceTuxUtility.WindowHelper.NextWindowId()
+	Some minor formatting changes
+	Added Clickthrough support to the Settings & the gauge toggle window
+	Added hiding of UI when game is paused
+	Added Temp Gauge to controller window
+	Changed static version numbers in title to getting the version from the assembly
+
+	Dependencies
+		ClickThroughBlocker
+		ToolbarController
+		SpacetuxLibrary

@@ -18,7 +18,10 @@ using UnityEngine;                  //KSP is built on the Unity engine, so, we u
 using KSP.IO;                       //KSP specific IO handling
 using KSP.UI.Screens;
 using System;
-
+using System.Collections.Generic;
+using ToolbarControl_NS;
+using KSP_Log;
+using ClickThroughFix;
 
 namespace SteamGauges
 {
@@ -29,25 +32,31 @@ namespace SteamGauges
         public static int CompatibleMajorVersion { get { return 1; } }
         public static int CompatibleMinorVersion { get { return 9; } }
         public static int CompatibleRevisionVersion { get { return 0; } }
-        public static String VersionString { get { return "1.7.3"; } }
+        public static String VersionString { get { return typeof(SteamGauges).Assembly.GetName().Version.ToString(); } }
 
-        public static bool debug = false;                                            //If this is true, prints debug info to the console
+        public static bool debug = true;                                            //If this is true, prints debug info to the console
         private static Rect _windowPosition;                                        //The position for the options window (left, top, width, height)
         public static GUIStyle _windowStyle, _labelStyle, _boldStyle, _buttonStyle, _IconStyle, _toggleStyle;         //Styles for the window and label
         private bool _hasInitStyles = false;                                        //Only initialize once
         private static bool isMinimized = true;                                     //Is the window currently minimized?
         private static bool advMinimized = true;                                    //Advanced settings window
-        public static bool isShowUi = true;                                         //Show GUI
+        public static bool isShowUi = true;
+        public static bool isShowWin = true;
+        //Show GUI
+        public static bool isUIHidden = false;
+        public static bool isGamePaused = false;
         private bool _allToolbar;                                                   //If true, replaces the main window with a bunch of toolbar buttons
         public static bool windowLock;                                              //Are the windows locked in position, or dragable?
         private static Rect _advwindowPosition;                                     //Advanced settings window
+        public static bool showWhenUIHidden { get; private set; }
+
         public static bool drawBezels { get; private set; }                         //Draw the square bezels around gauges?
-        public static float Alpha {get; private set;}                               //The global alpha blend value for all windows
+        public static float Alpha { get; private set; }                               //The global alpha blend value for all windows
         public static Color Red = new Color(1, 0, 0);                               //Red, yo!
-        private static string[] buttonNames = { "Orbital Info Off", "Throttle Off", "Indicators Off", "Target Info Off", "Node Info Off", "Rotate Pitch Off", "Central Speed/Alt Off" , "GPWS Off", "Center HUD", "Oribal Mode Off", "Warnings Off", "Use CAS"};
+        private static string[] buttonNames = { "Orbital Info Off", "Throttle Off", "Indicators Off", "Target Info Off", "Node Info Off", "Rotate Pitch Off", "Central Speed/Alt Off", "GPWS Off", "Center HUD", "Oribal Mode Off", "Warnings Off", "Use CAS" };
         //Gauge variables
         public bool enableAirGauge, enableElectricalGauge, enableFuelGauge, enableHUDGauge, enableCompass, enableNodeGauge, enableOrbitGauge, enableRadarAltimeter, enableRZGauge, enableNavGauge, enableTempGauge;
-        private AirGauge airGauge;                                                  
+        private AirGauge airGauge;
         private ElectricalGauge electricalGauge;
         private FuelGauge fuelGauge;
         private HudGauge hudGauge;
@@ -58,17 +67,43 @@ namespace SteamGauges
         private RendezvousGauge rzGauge;
         private NavGauge navGauge;
         private TempGauge tempGauge;
-        
+
         //Global calculation class
         public static SteamShip vShip;
 
         //Blizzy's toolbar buttons
-        private static IButton[] buttons = new IButton[12];
-        private static ApplicationLauncherButton[] appButtons = new ApplicationLauncherButton[12];
+        //private static IButton[] buttons = new IButton[12];
+        static ToolbarControl toolbarControl;
+#if DEBUG
+        Log Log = new Log("SteamGauges.SteamGauges", Log.LEVEL.INFO);
+#else
+  Log Log = new Log("SteamGauges.SteamGauges", Log.LEVEL.ERROR);
+#endif
+        internal const string MODID = "SteamGauges_NS";
+        internal const string MODNAME = "SteamGauges";
+
+        private static ToolbarControl[] buttons = new ToolbarControl[12];
+        private static Gauge[] gauges = new Gauge[12];
+        internal static string[] ButtonNames = new string[12] {
+            "",
+            "Air Gauge",
+            "Electrical Gauge",
+            "Fuel Gauge",
+            "HUD",
+            "Compass",
+            "Node Gauge",
+            "Orbit Gauge",
+            "Radar Altimeter",
+            "RZ Gauge",
+            "Nav Gauge",
+            "Temp Gauge",
+        };
 
         private Callback preDrawCallbacks;
         private Callback postDrawCallbacks;
-        
+
+
+
         //Runs (once?) on object loading
         public void Awake()
         {
@@ -78,216 +113,320 @@ namespace SteamGauges
                 //Initialize styles, if not already done
                 if (!_hasInitStyles) initStyles();
 
-                if (debug) Debug.Log("(SG) SteamGauges is loading textures...");
+                if (debug) Log.Info("(SG) SteamGauges is loading textures...");
                 //Loads textures
                 Resources.loadAssets();
 
                 //This needs to get drawn from here on out
                 AddToPostDrawQueue(OnDraw);
 
-                if (debug) Debug.Log("(SG) Loading config values...");
+                if (debug) Log.Info("(SG) Loading config values...");
                 PluginConfiguration config = PluginConfiguration.CreateForType<SteamGauges>();
                 config.load();
                 LoadMe(config);
-                if (debug) Debug.Log("(SG) Initializing individual gauges...");
+                if (debug) Log.Info("(SG) Initializing individual gauges...");
                 //Initialize individual gauges
                 radarAltimeter = new RadarAltimeter();
-                radarAltimeter.Initialize(this, 8903, "rad_alt.png", enableRadarAltimeter);
+                radarAltimeter.Initialize(this, SpaceTuxUtility.WindowHelper.NextWindowId("radarAltimeter"), "rad_alt.png", enableRadarAltimeter);
                 compassGauge = new MagneticCompass();
-                compassGauge.Initialize(this, 8904, "magnetic_compass.png", enableCompass, 1134, 574);
+                compassGauge.Initialize(this, SpaceTuxUtility.WindowHelper.NextWindowId("compassGauge"), "magnetic_compass.png", enableCompass, 1134, 574);
                 electricalGauge = new ElectricalGauge();
-                electricalGauge.Initialize(this, 8905, "ammeter_volmeter.png", enableElectricalGauge);
+                electricalGauge.Initialize(this, SpaceTuxUtility.WindowHelper.NextWindowId("electricalGauge"), "ammeter_volmeter.png", enableElectricalGauge);
                 fuelGauge = new FuelGauge();
-                fuelGauge.Initialize(this, 8906, "fuel_gauge.png", enableFuelGauge);
+                fuelGauge.Initialize(this, SpaceTuxUtility.WindowHelper.NextWindowId("fuelGauge"), "fuel_gauge.png", enableFuelGauge);
                 orbitGauge = new OrbitGauge();
-                orbitGauge.Initialize(this, 8907, "orbit_gauge.png", enableOrbitGauge);
+                orbitGauge.Initialize(this, SpaceTuxUtility.WindowHelper.NextWindowId("orbitGauge"), "orbit_gauge.png", enableOrbitGauge);
                 rzGauge = new RendezvousGauge();
-                rzGauge.Initialize(this, 8908, "RZ_gauge.png", enableRZGauge, 1200, 1200, 1200);
+                rzGauge.Initialize(this, SpaceTuxUtility.WindowHelper.NextWindowId("rzGauge"), "RZ_gauge.png", enableRZGauge, 1200, 1200, 1200);
                 nodeGauge = new NodeGauge();
-                nodeGauge.Initialize(this, 8909, "node_gauge.png", enableNodeGauge);
+                nodeGauge.Initialize(this, SpaceTuxUtility.WindowHelper.NextWindowId("nodeGauge"), "node_gauge.png", enableNodeGauge);
                 hudGauge = new HudGauge();
-                hudGauge.Initialize(this, 8910, enableHUDGauge);
+                hudGauge.Initialize(this, SpaceTuxUtility.WindowHelper.NextWindowId("hudGauge"), enableHUDGauge);
                 airGauge = new AirGauge();
-                airGauge.Initialize(this, 8911, "air_gauge.png", enableAirGauge);
+                airGauge.Initialize(this, SpaceTuxUtility.WindowHelper.NextWindowId("airGauge"), "air_gauge.png", enableAirGauge);
                 navGauge = new NavGauge();
-                navGauge.Initialize(this, 8912, "nav_gauge.png", enableNavGauge);
+                navGauge.Initialize(this, SpaceTuxUtility.WindowHelper.NextWindowId("navGauge"), "nav_gauge.png", enableNavGauge);
                 tempGauge = new TempGauge();
-                tempGauge.Initialize(this, 8913, "temp_gauge.png", enableTempGauge);
-                if (debug) Debug.Log("(SG) Loading gauge settings...");
+                tempGauge.Initialize(this, SpaceTuxUtility.WindowHelper.NextWindowId("tempGauge"), "temp_gauge.png", enableTempGauge);
+                if (debug) Log.Info("(SG) Loading gauge settings...");
                 LoadThem(config);
             }
-            //Blizzy's toolbar buton setup
-            if (ToolbarManager.ToolbarAvailable)
-            {
-                InitializeButtons();
-            }
-            else
-            {
-                GameEvents.onGUIApplicationLauncherReady.Add(InitializeButtons);
-            }
+
+            InitializeButtons();
+
             // show & hide gui
             GameEvents.onShowUI.Add(() => OnShowUI(true));
             GameEvents.onHideUI.Add(() => OnShowUI(false));
-            if (debug) Debug.Log("(SG) SteamGauges initialization comlete.");
+
+            GameEvents.onGameUnpause.Add(() => OnPause(false));
+            GameEvents.onGamePause.Add(() => OnPause(true));
+
+
+
+            if (debug) Log.Info("(SG) SteamGauges initialization comlete.");
         }
+
+
+        void onClickSteamButton()
+        {
+            if (_allToolbar)
+            {
+                if (debug) Log.Info("(SG) SteamGauges settings toggled.");
+                advMinimized = !advMinimized;
+            }
+            else
+            {
+                if (debug) Log.Info("(SG) SteamGauges menu toggled.");
+                isMinimized = !isMinimized;
+            }
+            SaveMe();
+        }
+
 
         private void InitializeButtons()
         {
-            if (debug) Debug.Log("(SG) Initializing SteamGauges/Toolbar Integration");
-            Callback onClickSteamButton = () =>
+            if (debug) Log.Info("(SG) Initializing SteamGauges/Toolbar Integration");
+            if (toolbarControl == null)
             {
-                if (_allToolbar)
-                {
-                    if (debug) Debug.Log("(SG) SteamGauges settings toggled.");
-                    advMinimized = !advMinimized;
-                }
-                else
-                {
-                    if (debug) Debug.Log("(SG) SteamGauges menu toggled.");
-                    isMinimized = !isMinimized;
-                }
-                SaveMe();
-            };
-
-            if (ToolbarManager.ToolbarAvailable)
-            {
-                if (buttons[0] == null)
-                {
-                    IButton steam_button = ToolbarManager.Instance.add("SteamGauges", "steamgauges0");
-                    steam_button.TexturePath = "SteamGauges/sgi";
-                    steam_button.ToolTip = "SteamGauges Menu";
-                    steam_button.Visibility = new GameScenesVisibility(GameScenes.FLIGHT);
-                    steam_button.OnClick += (e) =>
-                    {
-                        onClickSteamButton();
-                    };
-                    buttons[0] = steam_button;
-                }
-            }
-            else if (ApplicationLauncher.Ready)
-            {
-                if (appButtons[0] == null)
-                {
-                    ApplicationLauncherButton steam_button = ApplicationLauncher.Instance.AddModApplication(
-                        onClickSteamButton,
-                        onClickSteamButton,
-                        null,
-                        null,
-                        null,
-                        null,
-                        ApplicationLauncher.AppScenes.FLIGHT,
-                        (Texture)GameDatabase.Instance.GetTexture("SteamGauges/sgi", false));
-                    appButtons[0] = steam_button;
-                }
+                Log.Info("Creating toolbar button");
+                toolbarControl = gameObject.AddComponent<ToolbarControl>();
+                toolbarControl.AddToAllToolbars(onClickSteamButton, onClickSteamButton,
+                     ApplicationLauncher.AppScenes.FLIGHT,
+                    MODID,
+                    "StockSettingsButton",
+                    "SteamGauges/PluginData/Icons/sgi",
+                    "SteamGauges/PluginData/Icons/sgi",
+                    MODNAME
+                    );
+                EnableButton(1);
+                EnableButton(2);
+                EnableButton(3);
+                EnableButton(4);
+                EnableButton(5);
+                EnableButton(6);
+                EnableButton(7);
+                EnableButton(8);
+                EnableButton(9);
+                EnableButton(10);
+                EnableButton(11);
             }
 
-            AddButton(airGauge, enableAirGauge, 1);
-            AddButton(electricalGauge, enableElectricalGauge, 2);
-            AddButton(fuelGauge, enableFuelGauge, 3);
-            AddButton(hudGauge, enableHUDGauge, 4);
-            AddButton(compassGauge, enableCompass, 5);
-            AddButton(nodeGauge, enableNodeGauge, 6);
-            AddButton(orbitGauge, enableOrbitGauge, 7);
-            AddButton(radarAltimeter, enableRadarAltimeter, 8);
-            AddButton(rzGauge, enableRZGauge, 9);
-            AddButton(navGauge, enableNavGauge, 10);
-            AddButton(tempGauge, enableTempGauge, 11);
         }
 
-        private void AddButton(Gauge gauge, bool enable, int index)
+        private void EnableButton(int index)
         {
-            if (ToolbarManager.ToolbarAvailable)
+            if (!_allToolbar) return;
+            Log.Info("EnableButton, index: " + index);
+            Gauge gauge = null;
+            bool enable = false;
+            switch (index)
             {
-                AddToolbarButton(gauge, enable, index);
+                case 1:
+                    gauge = airGauge; enable = enableAirGauge; break;
+                case 2:
+                    gauge = electricalGauge; enable = enableElectricalGauge; break;
+                case 3:
+                    gauge = fuelGauge; enable = enableFuelGauge; break;
+                case 4:
+                    gauge = hudGauge; enable = enableHUDGauge; break;
+                case 5:
+                    gauge = compassGauge; enable = enableCompass; break;
+                case 6:
+                    gauge = nodeGauge; enable = enableNodeGauge; break;
+                case 7:
+                    gauge = orbitGauge; enable = enableOrbitGauge; break;
+                case 8:
+                    gauge = radarAltimeter; enable = enableRadarAltimeter; break;
+                case 9:
+                    gauge = rzGauge; enable = enableRZGauge; break;
+                case 10:
+                    gauge = navGauge; enable = enableNavGauge; break;
+                case 11:
+                    gauge = tempGauge; enable = enableTempGauge; break;
             }
-            else if (ApplicationLauncher.Ready)
+            if (buttons[index] == null)
             {
-                AddAppLaunchButton(gauge, enable, index);
+                Log.Info("buttons[" + index + "] is null");
+                var texturePath = String.Format("SteamGauges/PluginData/Icons/{0}", gauge.getTextureName());
+
+                var toolbarGameObj = gameObject.AddComponent<ToolbarControl>();
+                ToolbarControl.TC_ClickHandler handler = null;
+                switch (index)
+                {
+                    case 1: handler = onClick1; break;
+                    case 2: handler = onClick2; break;
+                    case 3: handler = onClick3; break;
+                    case 4: handler = onClick4; break;
+                    case 5: handler = onClick5; break;
+                    case 6: handler = onClick6; break;
+                    case 7: handler = onClick7; break;
+                    case 8: handler = onClick8; break;
+                    case 9: handler = onClick9; break;
+                    case 10: handler = onClick10; break;
+                    case 11: handler = onClick11; break;
+                }
+                toolbarGameObj.AddToAllToolbars(handler, handler,
+                    ApplicationLauncher.AppScenes.FLIGHT,
+                    MODID,
+                    MODNAME + index.ToString(),
+                    texturePath,
+                    texturePath,
+                    //ButtonNames[index]
+                    GaugeTooltip(gauge)
+                    );
+
+                buttons[index] = toolbarGameObj;
+                gauges[index] = gauge;
             }
         }
-
-        private void AddToolbarButton(Gauge gauge, bool enable, int index)
+        string GaugeTooltip(Gauge gauge)
         {
-            if (enable && buttons[index] == null)
-            {
-                IButton btn = ToolbarManager.Instance.add("SteamGauges", String.Format("steamgauges{0}", index));
-                btn.TexturePath = String.Format("SteamGauges/{0}", gauge.getTextureName());
-                if (gauge.isMinimized)
-                    btn.ToolTip = String.Format("{0} On", gauge.getTooltipName());
-                else
-                    btn.ToolTip = String.Format("{0} Off", gauge.getTooltipName());
-                btn.Visible = _allToolbar;
-                btn.Visibility = new GameScenesVisibility(GameScenes.FLIGHT);
-                btn.OnClick += (e) =>
-                {
-                    if (gauge.isMinimized)
-                        btn.ToolTip = String.Format("{0} On", gauge.getTooltipName());
-                    else
-                        btn.ToolTip = String.Format("{0} Off", gauge.getTooltipName());
-                    gauge.toggle();
-                    SaveMe();
-                };
-                buttons[index] = btn;
-            }
+            return gauge.isMinimized ? String.Format("{0} On", gauge.getTooltipName()) : String.Format("{0} Off", gauge.getTooltipName());
         }
-
-        private void AddAppLaunchButton(Gauge gauge, bool enable, int index)
+        void DisableButton(int i)
         {
-            if (enable && appButtons[index] == null)
+            if (buttons[i] != null)
             {
-                Callback onClick = () =>
-                {
-                    gauge.toggle();
-                    SaveMe();
-                };
-                ApplicationLauncherButton button = ApplicationLauncher.Instance.AddModApplication(
-                        onClick,
-                        onClick,
-                        null,
-                        null,
-                        null,
-                        null,
-                        ApplicationLauncher.AppScenes.FLIGHT,
-                        (Texture)GameDatabase.Instance.GetTexture(String.Format("SteamGauges/{0}", gauge.getTextureName()), false));
-                appButtons[index] = button;
+                buttons[i].OnDestroy();
+                Destroy(buttons[i]);
+                buttons[i] = null;
             }
         }
 
-        private void OnShowUI(bool isShow)
+        void onClick1()
         {
-            isShowUi = isShow;
+            Log.Info("onClick1");
+            gauges[1].toggle();
+            SaveMe();
+        }
+        void onClick2()
+        {
+            Log.Info("onClick2");
+            gauges[2].toggle();
+            SaveMe();
+        }
+        void onClick3()
+        {
+            Log.Info("onClick3");
+            gauges[3].toggle();
+            SaveMe();
+        }
+        void onClick4()
+        {
+            Log.Info("onClick4");
+            gauges[4].toggle();
+            SaveMe();
+        }
+        void onClick5()
+        {
+            Log.Info("onClick5");
+            gauges[5].toggle();
+            SaveMe();
+        }
+        void onClick6()
+        {
+            Log.Info("onClick6");
+            gauges[6].toggle();
+            SaveMe();
+        }
+        void onClick7()
+        {
+            Log.Info("onClick7");
+            gauges[7].toggle();
+            SaveMe();
+        }
+        void onClick8()
+        {
+            Log.Info("onClick8");
+            gauges[8].toggle();
+            SaveMe();
+        }
+        void onClick9()
+        {
+            Log.Info("onClick9");
+            gauges[9].toggle();
+            SaveMe();
+        }
+        void onClick10()
+        {
+            Log.Info("onClick10");
+            gauges[10].toggle();
+            SaveMe();
+        }
+        void onClick11()
+        {
+            Log.Info("onClick11");
+            gauges[11].toggle();
+            SaveMe();
+        }
+
+        private void OnShowUI(bool isShow) 
+        {
+            isUIHidden = !isShow; 
+            isShowUi = (!isUIHidden || showWhenUIHidden) && !isGamePaused; 
+            isShowWin = !isUIHidden  && !isGamePaused;
+
+            //Log.Info("OnShowUI, isShow: " + isShow + ", isShowUi: " + isShowUi + ", isUIHidden: " + isUIHidden + ", showWhenUIHidden: " + showWhenUIHidden + ", isGamePaused: " + isGamePaused);
+             
+        }
+
+        private void OnPause(bool isShow) 
+        {
+            isUIHidden = false; 
+            isGamePaused = isShow;
+            isShowWin = 
+                isShowUi = !isUIHidden && !isGamePaused; 
         }
 
         //Clean up buttons
         public void OnDestroy()
         {
-            foreach (IButton btn in buttons)
+            Log.Info("OnDestroy");
+            for (int i = 1; i < 12; i++)
             {
-                if (btn != null)
+                if (buttons[i] != null)
                 {
-                    btn.Destroy();
+                    buttons[i].OnDestroy();
+                    Destroy(buttons[i]);
+                    buttons[i] = null;
                 }
             }
-            foreach (ApplicationLauncherButton btn in appButtons)
-            {
-                if (btn != null)
-                {
-                    ApplicationLauncher.Instance.RemoveModApplication(btn);
-                }
-            }
+            airGauge = null;
+            electricalGauge = null;
+            fuelGauge = null;
+            hudGauge = null;
+            compassGauge = null;
+            nodeGauge = null;
+            orbitGauge = null;
+            radarAltimeter = null;
+            rzGauge = null;
+            navGauge = null;
+            tempGauge = null;
+
+            preDrawCallbacks = null;
+            postDrawCallbacks = null;
+
+            toolbarControl.OnDestroy();
+            Destroy(toolbarControl);
+            toolbarControl = null;
+
+            OnPause(false);
         }
 
         //Save persistant data to the config file
-        public void SaveMe()               
+        public void SaveMe()
         {
             PluginConfiguration config = PluginConfiguration.CreateForType<SteamGauges>();
             //Save main info
             config.SetValue("WindowPosition", _windowPosition);
             config.SetValue("WindowMinimized", isMinimized);
-            config.SetValue("GlobalAlpha", (double) Alpha);
+            config.SetValue("GlobalAlpha", (double)Alpha);
             config.SetValue("AdvancedMinimized", advMinimized);
             config.SetValue("AdvancedPosition", _advwindowPosition);
             config.SetValue("DrawBezels", drawBezels);
+            config.SetValue("ShowWhenUIHidden",  showWhenUIHidden);
+
+
             config.SetValue("WindowLock", windowLock);
             config.SetValue("AllToolbar", _allToolbar);
             config.SetValue("EnableAirGauge", enableAirGauge);
@@ -317,19 +456,20 @@ namespace SteamGauges
         }
 
         //Load persistant data from the config file
-        public void LoadMe(PluginConfiguration config)             
+        public void LoadMe(PluginConfiguration config)
         {
             //Load main info
             _windowPosition = config.GetValue<Rect>("WindowPosition", new Rect(200, 200, 250f, 200f));
             _windowPosition.width = 10f;    //Make it small, so it can be resized larger
             _windowPosition.height = 10f;
             isMinimized = config.GetValue<bool>("WindowMinimized", true);
-            Alpha = (float) config.GetValue<double>("GlobalAlpha", 1);   //No ability to save floats, so I save as a double
+            Alpha = (float)config.GetValue<double>("GlobalAlpha", 1);   //No ability to save floats, so I save as a double
             advMinimized = config.GetValue<bool>("AdvancedMinimized", true);
             _advwindowPosition = config.GetValue<Rect>("AdvancedPosition", new Rect(200, 200, 300f, 300f));
             _advwindowPosition.width = 10f; //Make it small, so it can be resised larger
             _advwindowPosition.height = 10f;
             drawBezels = config.GetValue<bool>("DrawBezels", true);
+            showWhenUIHidden = config.GetValue<bool>("ShowWhenUIHidden", true);
             windowLock = config.GetValue<bool>("WindowLock", false);
             _allToolbar = config.GetValue<bool>("AllToolbar", false);
             enableAirGauge = config.GetValue<bool>("EnableAirGauge", true);
@@ -392,13 +532,13 @@ namespace SteamGauges
         {
             //SteamShip updating
             SteamShip.update();
-            
+
             //Alpha blending
             Color tmpColor = GUI.color;
             GUI.color = new Color(1, 1, 1, Alpha);
 
             //Draw the main window, if not minimized
-            if (!isMinimized)
+            if (!isMinimized && isShowWin)
             {
                 //Check window off screen
                 if ((_windowPosition.xMin + _windowPosition.width) < 20) _windowPosition.xMin = 20 - _windowPosition.width; //left limit
@@ -406,24 +546,32 @@ namespace SteamGauges
                 if (_windowPosition.xMin > Screen.width - 20) _windowPosition.xMin = Screen.width - 20;   //right limit
                 if (_windowPosition.yMin > Screen.height - 20) _windowPosition.yMin = Screen.height - 20; //bottom limit
                 String title = "SteamGauges " + VersionString;
-                if (!CompatibilityChecker.IsCompatible())
-                    title = title + " Incompatible Version!";
-                _windowPosition = GUILayout.Window(8901, _windowPosition, OnWindow, title, _windowStyle);
+                //if (!CompatibilityChecker.IsCompatible())
+                //    title = title + " Incompatible Version!";
+                _windowPosition = ClickThruBlocker.GUILayoutWindow(SpaceTuxUtility.WindowHelper.NextWindowId(title), _windowPosition, OnWindow, title, _windowStyle);
             }
             //Draw the advanced window, if not minimized
-            if (!advMinimized)
-            {   
+            if (!advMinimized && isShowWin)
+            {
+                Log.Info("OnDraw, advMinimized is " + advMinimized);
                 //Check window off screen
                 if ((_advwindowPosition.xMin + _advwindowPosition.width) < 20) _advwindowPosition.xMin = 20 - _advwindowPosition.width; //left limit
                 if (_advwindowPosition.yMin + _advwindowPosition.height < 20) _advwindowPosition.yMin = 20 - _advwindowPosition.height; //top limit
                 if (_advwindowPosition.xMin > Screen.width - 20) _advwindowPosition.xMin = Screen.width - 20;   //right limit
                 if (_advwindowPosition.yMin > Screen.height - 20) _advwindowPosition.yMin = Screen.height - 20; //bottom limit
-                _advwindowPosition = GUILayout.Window(8902, _advwindowPosition, OnAdvanced, "SteamGauges"+VersionString+" Settings", _windowStyle);
+                _advwindowPosition = ClickThruBlocker.GUILayoutWindow(SpaceTuxUtility.WindowHelper.NextWindowId("SteamGauges"), _advwindowPosition, OnAdvanced, "SteamGauges " + VersionString + " Settings", _windowStyle);
             }
 
             //Reset alpha so we don't blend out stuff unintentionally
             GUI.color = tmpColor;
         }
+
+        bool waitingForKey = false;
+        bool modifierKeyPressed = false;
+        bool rshiftKeyPressed = false, lshiftKeyPressed = false;
+        KeyCodeExtended hudKey, hudModifierKey, hudShiftKey;
+        List<KeyCode> codes = null;
+
 
         //Draw the advanced settings window
         private void OnAdvanced(int WindowID)
@@ -443,12 +591,12 @@ namespace SteamGauges
             GUILayout.BeginHorizontal();
             GUILayout.Label("Scale", GUILayout.Width(50));   //It would be nice to make this dynamic
             radarAltimeter.setScale(GUILayout.HorizontalSlider(radarAltimeter.getScale(), 0.12f, 1f, GUILayout.Width(150)));
-            int s = (int) (radarAltimeter.getScale() * 100);    //0.5 to 50
-            GUILayout.Label(s.ToString()+'%', GUILayout.Width(50));    //Show, but don't allow editing of scale value
+            int s = (int)(radarAltimeter.getScale() * 100);    //0.5 to 50
+            GUILayout.Label(s.ToString() + '%', GUILayout.Width(50));    //Show, but don't allow editing of scale value
             GUILayout.EndHorizontal();
             //Compass/Electrical/Temp
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Magnetic Compass Settings", _boldStyle, GUILayout.Width(300)); 
+            GUILayout.Label("Magnetic Compass Settings", _boldStyle, GUILayout.Width(300));
             GUILayout.Label("Electrical Gauge Settings", _boldStyle, GUILayout.Width(300));
             GUILayout.Label("Temperature Gauge Settings", _boldStyle, GUILayout.Width(300));
             GUILayout.EndHorizontal();
@@ -456,7 +604,7 @@ namespace SteamGauges
             GUILayout.Label("Scale", GUILayout.Width(50));
             s = (int)(compassGauge.getScale() * 100);
             compassGauge.setScale(GUILayout.HorizontalSlider(compassGauge.getScale(), 0.12f, 1f, GUILayout.Width(150)));
-            GUILayout.Label(s.ToString()+'%', GUILayout.Width(50));    //Show, but don't allow editing of scale value
+            GUILayout.Label(s.ToString() + '%', GUILayout.Width(50));    //Show, but don't allow editing of scale value
             GUILayout.Label("Scale", GUILayout.Width(50));
             electricalGauge.setScale(GUILayout.HorizontalSlider(electricalGauge.getScale(), 0.12f, 1f, GUILayout.Width(150)));
             s = (int)(electricalGauge.getScale() * 100);
@@ -482,7 +630,7 @@ namespace SteamGauges
             GUILayout.Label("Scale", GUILayout.Width(50));
             fuelGauge.setScale(GUILayout.HorizontalSlider(fuelGauge.getScale(), 0.12f, 1f, GUILayout.Width(150)));
             s = (int)(fuelGauge.getScale() * 100);
-            GUILayout.Label(s.ToString()+'%', GUILayout.Width(50));    //Show, but don't allow editing of scale value
+            GUILayout.Label(s.ToString() + '%', GUILayout.Width(50));    //Show, but don't allow editing of scale value
             GUILayout.EndHorizontal();
             //Orbital Gauge
             GUILayout.Label("Orbital Gauge Settings", _boldStyle);
@@ -498,7 +646,7 @@ namespace SteamGauges
             GUILayout.Label("Scale", GUILayout.Width(50));
             orbitGauge.setScale(GUILayout.HorizontalSlider(orbitGauge.getScale(), 0.12f, 1f, GUILayout.Width(150)));
             s = (int)(orbitGauge.getScale() * 100);
-            GUILayout.Label(s.ToString()+'%', GUILayout.Width(50));    //Show, but don't allow editing of scale value
+            GUILayout.Label(s.ToString() + '%', GUILayout.Width(50));    //Show, but don't allow editing of scale value
             String text = "Negative Pe";
             if (!orbitGauge.showNegativePe) text = "Zero Pe";
             if (GUILayout.Button(text, _buttonStyle, GUILayout.Width(100))) orbitGauge.showNegativePe = !orbitGauge.showNegativePe;
@@ -508,12 +656,12 @@ namespace SteamGauges
             GUILayout.BeginHorizontal();
             GUILayout.Label("Distance Lights: R, Y, G", GUILayout.Width(200));
             rzGauge.setRed(int.Parse(GUILayout.TextField(rzGauge.getRed().ToString())));
-            rzGauge.setYellow (int.Parse(GUILayout.TextField(rzGauge.getYellow().ToString())));
+            rzGauge.setYellow(int.Parse(GUILayout.TextField(rzGauge.getYellow().ToString())));
             rzGauge.setGreen(int.Parse(GUILayout.TextField(rzGauge.getGreen().ToString())));
             GUILayout.Label("Scale", GUILayout.Width(50));
             rzGauge.setScale(GUILayout.HorizontalSlider(rzGauge.getScale(), 0.12f, 1f, GUILayout.Width(150)));
-            s = (int) (rzGauge.getScale() * 100);
-            GUILayout.Label(s.ToString()+'%', GUILayout.Width(50));    //Show, but don't allow editing of scale value
+            s = (int)(rzGauge.getScale() * 100);
+            GUILayout.Label(s.ToString() + '%', GUILayout.Width(50));    //Show, but don't allow editing of scale value
             GUILayout.EndHorizontal();
             //Node Gauge
             GUILayout.Label("Maneuver Node Gauge Settings", _boldStyle);
@@ -526,7 +674,7 @@ namespace SteamGauges
             GUILayout.Label("Scale", GUILayout.Width(50));
             nodeGauge.setScale(GUILayout.HorizontalSlider(nodeGauge.getScale(), 0.12f, 1f, GUILayout.Width(150)));
             s = (int)(nodeGauge.getScale() * 100);
-            GUILayout.Label(s.ToString()+'%', GUILayout.Width(50));
+            GUILayout.Label(s.ToString() + '%', GUILayout.Width(50));
             GUILayout.EndHorizontal();
             //Air Gauge/Nav Gauge
             GUILayout.BeginHorizontal();
@@ -539,7 +687,7 @@ namespace SteamGauges
             s = (int)(airGauge.getScale() * 100);
             GUILayout.Label(s.ToString() + '%', GUILayout.Width(35));
             GUILayout.Label("Stall AoA", GUILayout.Width(100));
-            airGauge.criticalAOA = (int.Parse(GUILayout.TextField(airGauge.criticalAOA.ToString(),GUILayout.Width(25))));
+            airGauge.criticalAOA = (int.Parse(GUILayout.TextField(airGauge.criticalAOA.ToString(), GUILayout.Width(25))));
             GUILayout.Label("Scale", GUILayout.Width(50));
             navGauge.setScale(GUILayout.HorizontalSlider(navGauge.getScale(), 0.12f, 1f, GUILayout.Width(150)));
             s = (int)(navGauge.getScale() * 100);
@@ -550,7 +698,7 @@ namespace SteamGauges
             //HUD color
             GUILayout.BeginHorizontal();
             Color tmp = GUI.color;
-            GUI.color = new Color((float)hudGauge.Red / 255f, (float) hudGauge.Green / 255f, (float) hudGauge.Blue / 255f);
+            GUI.color = new Color((float)hudGauge.Red / 255f, (float)hudGauge.Green / 255f, (float)hudGauge.Blue / 255f);
             GUILayout.Label("HUD Color: ", GUILayout.Width(75), GUILayout.Height(40));
             GUI.color = tmp;
             GUILayout.Label("     Red", GUILayout.Width(50), GUILayout.Height(40));
@@ -569,7 +717,7 @@ namespace SteamGauges
                 GUI.color = new Color((float)hudGauge.cRed / 255f, (float)hudGauge.cGreen / 255f, (float)hudGauge.cBlue / 255f);
             else
                 GUI.enabled = false;
-            GUILayout.Label("HUD Contrast Color: ", GUILayout.Width(75), GUILayout.Height(40));
+            GUILayout.Label("HUD Contrast Color: ", GUILayout.Width(200), GUILayout.Height(40));
             GUI.color = tmp;
             GUILayout.Label("     Red", GUILayout.Width(50), GUILayout.Height(40));
             hudGauge.cRed = (int)GUILayout.HorizontalSlider(hudGauge.cRed, 0, 255, GUILayout.Width(100), GUILayout.Height(40));
@@ -654,33 +802,79 @@ namespace SteamGauges
             GUI.enabled = hudGauge.mouseInput;
             hudGauge.planeMode = GUILayout.Toggle(hudGauge.planeMode, hudGauge.planeMode ? "Plane" : "Rocket", _buttonStyle, GUILayout.Width(150));
             GUI.enabled = true; //hmm
+            GUILayout.FlexibleSpace();
             GUILayout.Label("HUD Key:");
             String key = "";
-            foreach (KeyCode code in hudGauge.hudKeys)
-                key = key + code.ToString()+" ";
+
+            if (hudGauge.hudModifierKey.code != KeyCode.None)
+                key = key + hudGauge.hudModifierKey.code.ToString() + " ";
+            if (hudGauge.hudShiftKey.code != KeyCode.None)
+                key = key + hudGauge.hudShiftKey.code.ToString() + " ";
+            key = key + hudGauge.hudKey.code.ToString() + " ";
             GUILayout.TextArea(key);
-            /*if (GUILayout.Button("Assign Key", _buttonStyle, GUILayout.Width(100)))
+
+
+            if (!waitingForKey)
             {
-                //This is terrible right now, you pretty much have to hold down the key, then press the button.
-                if (Input.anyKey)
+                if (GUILayout.Button("Assign Key", _buttonStyle, GUILayout.Width(100)))
+                    waitingForKey = true;
+
+                hudKey = hudGauge.hudKey;
+                hudModifierKey = hudGauge.hudModifierKey;
+                hudShiftKey = hudGauge.hudShiftKey;
+                modifierKeyPressed = false;
+
+                if (codes == null)
                 {
-                    key = Input.inputString;
-                    if (Event.current.shift)
-                        key = key + " shift";
-                    if (Event.current.alt)
-                        key = key + " alt";
-                    if (Event.current.control)
-                        key = key + " ctrl";
-                    Debug.Log("Found keys: " + key);
+                    codes = new List<KeyCode>();
+
+                    for (KeyCode a = KeyCode.A; a < KeyCode.Z; a++)
+                        codes.Add(a);
+
+                    for (KeyCode a = KeyCode.RightShift; a < KeyCode.LeftAlt; a++)
+                        codes.Add(a);
                 }
-            } */
+            }
+            else
+            {
+                if (Event.current.isKey)
+                {
+                    if (ExtendedInput.DetectKeyDown(codes, out KeyCodeExtended extendedkey))
+                    {
+                        if (extendedkey.code == KeyCode.Escape)
+                        {
+                            waitingForKey = false;
+                        }
+                        else
+                        {
+                            modifierKeyPressed = ExtendedInput.GetKey(GameSettings.MODIFIER_KEY.primary);
+                            lshiftKeyPressed = ExtendedInput.GetKey(new KeyCodeExtended(KeyCode.LeftShift));
+                            rshiftKeyPressed = ExtendedInput.GetKey(new KeyCodeExtended(KeyCode.RightShift));
+
+                            hudGauge.hudKey = extendedkey;
+                            hudGauge.hudModifierKey.code = KeyCode.None;
+                            hudGauge.hudShiftKey.code = KeyCode.None;
+                            if (modifierKeyPressed)
+                                hudGauge.hudModifierKey = GameSettings.MODIFIER_KEY.primary;
+                            if (lshiftKeyPressed)
+                                hudGauge.hudShiftKey = new KeyCodeExtended(KeyCode.LeftShift);
+                            if (rshiftKeyPressed)
+                                hudGauge.hudShiftKey = new KeyCodeExtended(KeyCode.RightShift);
+
+                            Log.Info("extendedkey: " + extendedkey.code.ToString() + ", hudGauge.hudModifierKey: " + hudGauge.hudModifierKey + ", hudGauge.hudShiftKey: " + hudGauge.hudShiftKey);
+                        }
+
+                        waitingForKey = false;
+                    }
+                }
+            }
             GUILayout.EndHorizontal();
             //Scale
             GUILayout.BeginHorizontal();
             GUILayout.Label("Scale", GUILayout.Width(50));
             hudGauge.setScale(GUILayout.HorizontalSlider(hudGauge.getScale(), 0.12f, 1f, GUILayout.Width(150)));
             s = (int)(hudGauge.getScale() * 100);
-            GUILayout.Label(s.ToString()+'%', GUILayout.Width(50));
+            GUILayout.Label(s.ToString() + '%', GUILayout.Width(50));
             GUILayout.EndHorizontal();
             if (_allToolbar)
             {
@@ -695,6 +889,7 @@ namespace SteamGauges
                 GUILayout.BeginHorizontal();
                 drawBezels = GUILayout.Toggle(drawBezels, "Draw Large Bezels", _toggleStyle, GUILayout.Width(250));
                 windowLock = GUILayout.Toggle(windowLock, "Lock Gauge Posistions", _toggleStyle, GUILayout.Width(250));
+                showWhenUIHidden = GUILayout.Toggle(showWhenUIHidden, "Show Gauges when UI is hidden", _toggleStyle, GUILayout.Width(250));
                 GUILayout.EndHorizontal();
             }
             GUILayout.BeginHorizontal();
@@ -703,7 +898,7 @@ namespace SteamGauges
             if (_allToolbar == true) capt = "Use window for gauge toggle";
             if (GUILayout.Button(capt, _buttonStyle)) toolbarToggle();
             GUILayout.EndHorizontal();
-            if (GUI.changed)  SaveMe();
+            if (GUI.changed) SaveMe();
             //Make it dragable
             GUI.DragWindow();
         }
@@ -716,15 +911,9 @@ namespace SteamGauges
             }
             if (Event.current.type == EventType.Repaint || Event.current.isMouse)
             {
-                if (preDrawCallbacks != null)
-                {
-                    preDrawCallbacks();
-                }
+                preDrawCallbacks();
             }
-            if (postDrawCallbacks != null)
-            {
-                postDrawCallbacks();
-            }
+            postDrawCallbacks();
         }
 
         //This toggles the visibility of the extra toolbar buttons, based on the user selected mode.
@@ -735,11 +924,13 @@ namespace SteamGauges
                 isMinimized = true;
             for (int i = 1; i < buttons.Length; i++)    // skip first button
             {
-                IButton btn = buttons[i];
-                if (btn != null)
+                if (buttons[i] != null)
                 {
-                    btn.Visible = _allToolbar;
+                    DisableButton(i);
+                    //buttons[i].enabled = _allToolbar;
                 }
+                else
+                    EnableButton(i);
             }
         }
 
@@ -751,6 +942,7 @@ namespace SteamGauges
         //basically, the layout function, but also adds dragability
         private void OnWindow(int WindowID)
         {
+            Log.Info("OnWindow, WindowID: " + WindowID);
             //Directions
             GUILayout.Label("Please select the desired gauges:", _labelStyle);
             //Buttons for each of the gauges
@@ -816,11 +1008,19 @@ namespace SteamGauges
             }
             GUILayout.EndHorizontal();
             GUILayout.BeginHorizontal();
-            if (WindowToggle(!navGauge.isMinimized, "Nav Guage", 130))
+            if (WindowToggle(!navGauge.isMinimized, "Nav Gauge", 130))
             {
                 navGauge.toggle();
                 SaveMe();
             }
+
+            if (WindowToggle(!tempGauge.isMinimized, "Temp Gauge", 130))
+            {
+                tempGauge.toggle();
+                SaveMe();
+            }
+
+
             GUILayout.EndHorizontal();
             //Alpha transparency control
             GUILayout.BeginHorizontal();
@@ -835,6 +1035,7 @@ namespace SteamGauges
             GUILayout.EndHorizontal();
             drawBezels = GUILayout.Toggle(drawBezels, "Draw Large Bezels", _toggleStyle);
             windowLock = GUILayout.Toggle(windowLock, "Lock Gauge Posistions", _toggleStyle);
+            showWhenUIHidden = GUILayout.Toggle(showWhenUIHidden, "Show Gauges when UI is hidden", _toggleStyle);
             GUILayout.BeginHorizontal();
             if (WindowToggle(!advMinimized, "Advanced Settings", 130))
             {
@@ -848,7 +1049,7 @@ namespace SteamGauges
             }
             GUILayout.EndHorizontal();
             //make it dragable
-            GUI.DragWindow(); 
+            GUI.DragWindow();
         }
 
         //Initialize window and label styles, which will eventually go away

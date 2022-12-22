@@ -5,6 +5,7 @@ using System;
 using System.Reflection;
 using System.Collections.Generic;
 using System.Linq;
+using KSP_Log;
 
 namespace SteamGauges
 {
@@ -159,8 +160,8 @@ namespace SteamGauges
             double percent = 6;
             if (req > 0)
                 percent = prov / req;
-            //if (SteamGauges.debug) Debug.Log("Air Percent: " + Math.Round(prov, 2) + "/" + Math.Round(req, 2) + " = " + Math.Round(percent, 2));
-            //Debug.Log("Air Percent: " + Math.Round(percent, 2));
+            //if (SteamGauges.debug) Log.Info("Air Percent: " + Math.Round(prov, 2) + "/" + Math.Round(req, 2) + " = " + Math.Round(percent, 2));
+            //Log.Info("Air Percent: " + Math.Round(percent, 2));
             double angle = 0;
             //right 180 deg is 1 to 5
             if (percent > 6) percent = 6d;
@@ -186,8 +187,8 @@ namespace SteamGauges
                 angle = 85d - angle;
                 angle += 270;
             }
-            //Debug.Log("Final Percent: " + Math.Round(percent,2));
-            //Debug.Log("Air angle: " + Math.Round(angle, 1));
+            //Log.Info("Final Percent: " + Math.Round(percent,2));
+            //Log.Info("Air angle: " + Math.Round(angle, 1));
             //Now rotate the GUI and draw the needle
             Vector2 pivotPoint = new Vector2(200 * Scale, 261 * Scale);    //Center of air gauge
             GUIUtility.RotateAroundPivot((float)angle, pivotPoint);
@@ -308,7 +309,7 @@ namespace SteamGauges
         public static double getRequiredAir(Vessel v, out double airReq, out double airAvailable)
         {
             double dt = TimeWarp.fixedDeltaTime;
-            //if (SteamGauges.debug) Debug.Log("dT: " + Math.Round(dt, 3));
+            //if (SteamGauges.debug) Log.Info("dT: " + Math.Round(dt, 3));
             airReq = airAvailable = 0;
             foreach (Part P in v.parts)
             {
@@ -323,7 +324,7 @@ namespace SteamGauges
                         {
                             if (Pro.name.Equals("IntakeAir"))
                             {
-                                //if (SteamGauges.debug) Debug.Log("Air Req: " + Math.Round(Pro.currentRequirement,2));
+                                //if (SteamGauges.debug) Log.Info("Air Req: " + Math.Round(Pro.currentRequirement,2));
                                 airReq += Pro.currentRequirement;
                             }
                         }
@@ -337,7 +338,7 @@ namespace SteamGauges
                         {
                             if (Pro.name.Equals("IntakeAir"))
                             {
-                                //if (SteamGauges.debug) Debug.Log("Air Req: " + Math.Round(Pro.currentRequirement, 2));
+                                //if (SteamGauges.debug) Log.Info("Air Req: " + Math.Round(Pro.currentRequirement, 2));
                                 airReq += Pro.currentRequirement;
                             }
                         }
@@ -347,15 +348,15 @@ namespace SteamGauges
                         ModuleResourceIntake MRI = PM as ModuleResourceIntake;
                         if (MRI.intakeEnabled && MRI.resourceName.Equals("IntakeAir"))
                         {
-                            //if (SteamGauges.debug) Debug.Log("Air In: " + Math.Round(MRI.airFlow*dt, 2));
+                            //if (SteamGauges.debug) Log.Info("Air In: " + Math.Round(MRI.airFlow*dt, 2));
                             airAvailable += MRI.airFlow * dt;
                         }
                     }
                 }
             }
-            //Debug.Log("Calc Air: " + Math.Round(airAvailable/airReq, 2));
-            //Debug.Log("Sim Air: " + Math.Round(SteamShip.AirPercent, 2));
-            //if (SteamGauges.debug) Debug.Log("Air Req: " + Math.Round(airReq, 2) + " In: " + Math.Round(airAvailable, 2));
+            //Log.Info("Calc Air: " + Math.Round(airAvailable/airReq, 2));
+            //Log.Info("Sim Air: " + Math.Round(SteamShip.AirPercent, 2));
+            //if (SteamGauges.debug) Log.Info("Air Req: " + Math.Round(airReq, 2) + " In: " + Math.Round(airAvailable, 2));
             return airReq;
         }
 

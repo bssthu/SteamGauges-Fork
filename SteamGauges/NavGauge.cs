@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using KSP.IO;
+using KSP_Log;
 
 namespace SteamGauges
 {
@@ -9,6 +10,7 @@ namespace SteamGauges
 
         public override string getTextureName() { return "nav"; }
         public override string getTooltipName() { return "Nav Gauge"; }
+
 
         //Draw unless minimized
         protected override bool isVisible()
@@ -61,14 +63,14 @@ namespace SteamGauges
         {
             //To determine relative bearing, we need vessel heading and waypoint heading
             double brng = SteamShip.NavHeading;
-            if (SteamGauges.debug) Debug.Log("(SG) Nav waypoint Hdg: " + brng);
+            if (SteamGauges.debug) Log.Info("(SG) Nav waypoint Hdg: " + brng);
             if (brng > 180)
                 brng = (360d - brng)*-1d;
             brng -= hdg;
             if (brng > 180)
                 brng = (360d - brng);
             if (SteamShip.NavHeading == -1) brng = 90;    //peg to 90 if "OFF"
-            if (SteamGauges.debug)Debug.Log("(SG) Nav waypoint Brng: " + brng*-1);
+            if (SteamGauges.debug) Log.Info("(SG) Nav waypoint Brng: " + brng*-1);
             //rotate
             Vector2 pivotPoint = new Vector2(200 * Scale, 204 * Scale);    //Center of gauge
             GUIUtility.RotateAroundPivot((float) brng, pivotPoint);
@@ -80,7 +82,7 @@ namespace SteamGauges
         private void drawNumbers()
         {
             //Draw distance first
-            if (SteamGauges.debug)Debug.Log("(SG) Nav waypoint dist: " + SteamShip.NavDist/1000+"km");
+            if (SteamGauges.debug) Log.Info("(SG) Nav waypoint dist: " + SteamShip.NavDist/1000+"km");
             double dist = SteamShip.NavDist;
             if (dist == -1) dist = 00;
             int d = 0;  //digit
@@ -116,7 +118,7 @@ namespace SteamGauges
             int ss = (int) (t % 60);
             if (t > 359999) //99:59:59
             { hh = 99; mm = 59; ss = 59; }  //set all to highest value
-            if (SteamGauges.debug) Debug.Log("(SG) Waypoint ETE: " + hh + ":" + mm + ":" + ss);
+            if (SteamGauges.debug) Log.Info("(SG) Waypoint ETE: " + hh + ":" + mm + ":" + ss);
             //10H, 0-9
             d = (int)(hh / 10);
             GUI.DrawTextureWithTexCoords(new Rect(15f * Scale, 365f * Scale, 14f * Scale, 16f * Scale), texture, new Rect(0.7f, 0.4312f - (d * 0.0246f), 0.0175f, 0.01965f));

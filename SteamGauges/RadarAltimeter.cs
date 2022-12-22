@@ -2,6 +2,8 @@
 using UnityEngine;
 using KSP.IO;
 using System;
+using KSP_Log;
+
 
 namespace SteamGauges
 {
@@ -17,6 +19,8 @@ namespace SteamGauges
         public int calibration { get; set; }                           //Calibrates the gauge to read 0 when landed
         private long ra;                                               //Might as well just store this instead of passing it everywhere
         private bool first;
+
+
 
         public override string getTextureName() { return "ra"; }
         public override string getTooltipName() { return "Radar Altimeter"; }
@@ -211,13 +215,13 @@ namespace SteamGauges
             if (v.Landed || v.orbit.PeA > 0 || v.mainBody.atmosphere) return -1;  //Not calculating this
             long sa = 0;
             double avgG = v.mainBody.gravParameter / ((v.mainBody.Radius + FlightGlobals.ActiveVessel.terrainAltitude) * (v.mainBody.Radius + FlightGlobals.ActiveVessel.terrainAltitude));
-            //Debug.Log("Srf G: "+Math.Round(avgG, 2));
+            //Log.Info("Srf G: "+Math.Round(avgG, 2));
             avgG += FlightGlobals.getGeeForceAtPosition(v.CoM).magnitude;
             avgG /= 2;
-            //Debug.Log("Curr G: "+Math.Round(FlightGlobals.getGeeForceAtPosition(v.CoM).magnitude, 2));
-            //Debug.Log("Avg G: "+Math.Round(avgG,2));
+            //Log.Info("Curr G: "+Math.Round(FlightGlobals.getGeeForceAtPosition(v.CoM).magnitude, 2));
+            //Log.Info("Avg G: "+Math.Round(avgG,2));
             double vdv = Math.Sqrt((2 * avgG * ra) + (v.verticalSpeed*v.verticalSpeed));
-            //Debug.Log("Vert Dv: " + Math.Round(vdv, 2)+"m/s");
+            //Log.Info("Vert Dv: " + Math.Round(vdv, 2)+"m/s");
             //Use mass and max available thrust
             double mass = 0;
             double max_thrust = 0;
@@ -245,18 +249,18 @@ namespace SteamGauges
                 }
             }
             isp = max_thrust / isp; //Weighted average of active engine ISP's
-            //Debug.Log("Current Mass: " + Math.Round(mass,2) + "t Thrust: " + max_thrust+"kn ISP: "+Math.Round(isp, 2)+"s");
+            //Log.Info("Current Mass: " + Math.Round(mass,2) + "t Thrust: " + max_thrust+"kn ISP: "+Math.Round(isp, 2)+"s");
             //Altitude Fraction = (Vertical dv ^2) / (2 * 1000 * Thrust (kN))
             double altFrac = (vdv * vdv) / (2 * 1000 * max_thrust);
-            //Debug.Log("Altitude Fraction: " + Math.Round(altFrac, 2));
+            //Log.Info("Altitude Fraction: " + Math.Round(altFrac, 2));
             //m-avg = (m0 + (m0 / e ^ (dv / (Isp * 9.82)))) / 2
             //double avgMass = (mass + (mass / Math.Pow(Math.E, (vdv / isp * 9.82)))) / 2;
             double avgMass = (mass / Math.Pow(Math.E, (vdv / (isp * 9.82))));
-            //Debug.Log("Final Mass: " + Math.Round(avgMass, 2)+"t");
+            //Log.Info("Final Mass: " + Math.Round(avgMass, 2)+"t");
             avgMass = (mass + avgMass) / 2;
-            //Debug.Log("Avg Mass: " + Math.Round(avgMass, 2) + "t");
+            //Log.Info("Avg Mass: " + Math.Round(avgMass, 2) + "t");
             sa = (long)Math.Round(altFrac * avgMass*1000);
-            //Debug.Log("SA: " + sa+"m");
+            //Log.Info("SA: " + sa+"m");
             */
             //if (!auto_burn)
             //burning = false;
@@ -266,7 +270,7 @@ namespace SteamGauges
                 auto_burn = false;
                 buttons[0].active = false;
                 FlightInputHandler.state.mainThrottle = 1.0f;
-                Debug.Log("Auto burn initiated!");
+                Log.Info("Auto burn initiated!");
             }
 
             //Contact-Stop calculations
@@ -276,7 +280,7 @@ namespace SteamGauges
                 contact_stop = false;
                 buttons[1].active = false;
                 FlightInputHandler.state.mainThrottle = 0f;
-                Debug.Log("Contact! Burn stopped!");
+                Log.Info("Contact! Burn stopped!");
             }
             if (contact_stop && burning && FlightGlobals.ActiveVessel.verticalSpeed > 2)
             {
@@ -285,7 +289,7 @@ namespace SteamGauges
                 auto_burn = false;
                 buttons[1].active = false;
                 FlightInputHandler.state.mainThrottle = 0f;
-                Debug.Log("Climbing! Burn stopped!");
+                Log.Info("Climbing! Burn stopped!");
             }
             return SteamShip.SA;
         }
